@@ -30,7 +30,11 @@ Examples:
 
 ## Bootstrapping from an Existing Arch Linux System
 
-Download the [PKGBUILD](https://github.com/flying-dude/ymerge/blob/main/PKGBUILD) and then use [makepkg](https://wiki.archlinux.org/title/Makepkg) to install the package:
+Download the
+[PKGBUILD](https://github.com/flying-dude/curated-aur/blob/main/pkg/ymerge/PKGBUILD)
+and then use
+[makepkg](https://wiki.archlinux.org/title/Makepkg)
+to install the package:
 
 ```
 wget https://raw.githubusercontent.com/flying-dude/curated-aur/main/pkg/ymerge/PKGBUILD
