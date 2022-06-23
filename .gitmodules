@@ -1,0 +1,9 @@
+[submodule "src/libymerge/libxdgdirs"]
+	path = src/submodules/libxdgdirs
+	url = https://github.com/Jorengarenar/libXDGdirs
+[submodule "src/submodules/lexy"]
+	path = src/submodules/lexy
+	url = https://github.com/foonathan/lexy
+[submodule "src/submodules/libxdgdirs"]
+	path = src/submodules/libxdgdirs
+	url = https://github.com/Jorengarenar/libXDGdirs

@@ -1,0 +1,1 @@
+../submodules/libxdgdirs/src/xdgdirs.h

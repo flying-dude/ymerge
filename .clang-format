@@ -1,0 +1,20 @@
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+---
+Language: Cpp
+
+SortIncludes: CaseSensitive
+NamespaceIndentation: Inner
+ColumnLimit: 120
+
+TabWidth: 8
+IndentWidth: 8
+UseTab: ForIndentation
+
+# "Fixed one-line if statement" https://reviews.llvm.org/D37140
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLambdasOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
