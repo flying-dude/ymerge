@@ -27,6 +27,7 @@ using namespace nlohmann;
 namespace fly {
 
 const char *usage = R"(Usage: ymerge [options] [pkg...]
+Version: )" YMERGE_VERSION R"(
 
 A Source-Based Package Manager for Arch Linux.
 
@@ -50,8 +51,9 @@ Examples:
     Remove the "xmake" and "build2" packages:
     $ ymerge --remove xmake build2)";
 
-const char *short_usage = R"(Usage: ymerge [options] [pkg...]
-Help: ymerge --help)";
+auto short_usage = R"(Usage: ymerge [options] [pkg...]
+Help: ymerge --help
+Version: )" YMERGE_VERSION;
 
 #define CURATED_URL "https://github.com/flying-dude/curated-aur"
 

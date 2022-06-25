@@ -7,6 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wp,-D_FORTIFY_SOURCE=2")
 
+if(DEFINED YMERGE_VERSION)
+    add_definitions(-DYMERGE_VERSION="${YMERGE_VERSION}")
+else()
+    add_definitions(-DYMERGE_VERSION="UNKNOWN_VERSION")
+endif()
+
 find_package(fmt)
 
 include_directories(src/youtil)
