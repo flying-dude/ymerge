@@ -17,6 +17,7 @@ namespace fly {
 int exec_prog(vector<string> argv_, cmd_options opt) {
 	pid_t my_pid;
 	if (0 == (my_pid = fork())) {
+#pragma GCC diagnostic ignored "-Wunused-result"
 		// if requested, redirect stdout and stderr
 		// https://stackoverflow.com/questions/29154056/redirect-stdout-to-a-file
 		if (auto stdout_file = opt.stdout_file) freopen(stdout_file->c_str(), "a+", stdout);
@@ -37,7 +38,7 @@ int exec_prog(vector<string> argv_, cmd_options opt) {
 		/* a trailing nullptr signals the end of argv to execvpe. the received list of args
 		 * is not required to provide this. so we add it here before invoking execvpe. */
 		unique_ptr<const char *[]> argv = make_unique<const char *[]>(argv_.size() + 1);
-		for (int i = 0; i < argv_.size(); i++) argv[i] = argv_[i].c_str();
+		for (size_t i = 0; i < argv_.size(); i++) argv[i] = argv_[i].c_str();
 		argv[argv_.size()] = nullptr;
 
 		/* note that unless exevpe fails, this program is also terminates when calling execvpe
