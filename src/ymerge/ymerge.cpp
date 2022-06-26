@@ -153,24 +153,25 @@ int main(int argc, const char **argv, char *envp_[]) {
 			// https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
 			cmd_options opt;
 			opt.stdout_file = "/dev/null";
-			auto err = exec_opt(opt, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
-			if (err) {
+			if (auto err =
+			        exec_opt(opt, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree")) {
 				error("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str());
 				return 1;
 			}
 
 			// https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
-			err = git("-C", git_dir.c_str(), "fetch", "--depth", "1");
-			if (err) {
+			if (auto err = git("-C", git_dir.c_str(), "fetch", "--depth", "1")) {
 				error("{}", *err);
 				return 1;
 			}
 
-			// needed?
-			// GIT("-C", pkg_dir.c_str(), "reset", "--hard", "origin/main");
+			if (auto err = git("-C", git_dir.c_str(), "reset", "--hard", "origin/main")) {
+				error("{}", *err);
+				return 1;
+			}
 
-			// needed? deleting potential user changes is not cool.
-			// GIT("-C", pkg_dir.c_str(), "clean", "-dfx");
+			// is this even needed?
+			// git("-C", git_dir.c_str(), "clean", "-dfx");
 		}
 	}
 
