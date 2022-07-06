@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "format.hh"
 
+#include <fmt/color.h>
 #include <fmt/printf.h>
 
 #include <iomanip>
@@ -113,7 +114,7 @@ FMT_END_NAMESPACE
 namespace format {
 
 void NameOnly(const aur::Package& package) {
-  fmt::print(terminal::Bold("{}\n"), package.name);
+  fmt::print(fmt::emphasis::bold, "{}\n", package.name);
 }
 
 void Short(const aur::Package& package,
@@ -204,8 +205,9 @@ namespace {
 
 void FormatCustomTo(std::string& out, std::string_view format,
                     const aur::Package& package) {
+  throw std::runtime_error("function \"FormatCustomTo()\" turned off due to errors in migration from C++17 -> C++ 20");
   // clang-format off
-  fmt::format_to(
+  /* fmt::format_to(
       std::back_inserter(out), format,
       fmt::arg("name", package.name),
       fmt::arg("description", package.description),
@@ -231,7 +233,7 @@ void FormatCustomTo(std::string& out, std::string_view format,
       fmt::arg("licenses", package.licenses),
       fmt::arg("optdepends", package.optdepends),
       fmt::arg("provides", package.provides),
-      fmt::arg("replaces", package.replaces));
+      fmt::arg("replaces", package.replaces)); */
   // clang-format on
 }
 
@@ -239,9 +241,13 @@ void FormatCustomTo(std::string& out, std::string_view format,
 
 void Custom(const std::string_view format, const aur::Package& package) {
   std::string out;
-
-  FormatCustomTo(out, format, package);
-
+  try {
+    // this call will throw guaranteed. but we keep the call still here to preserve the indent of
+    // what should be done inside this function.
+    FormatCustomTo(out, format, package);
+  } catch (const std::runtime_error& e) {
+    out.assign(e.what());
+  }
   std::cout << out << "\n";
 }
 
@@ -249,7 +255,7 @@ bool FormatIsValid(const std::string& format, std::string* error) {
   try {
     std::string out;
     FormatCustomTo(out, format, aur::Package());
-  } catch (const fmt::format_error& e) {
+  } catch (const std::runtime_error& e) {
     error->assign(e.what());
     return false;
   }
@@ -261,7 +267,7 @@ absl::Status Validate(std::string_view format) {
   try {
     std::string out;
     FormatCustomTo(out, format, aur::Package());
-  } catch (const fmt::format_error& e) {
+  } catch (const std::runtime_error& e) {
     return absl::InvalidArgumentError(e.what());
   }
   return absl::OkStatus();
