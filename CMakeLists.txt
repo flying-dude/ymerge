@@ -25,10 +25,10 @@ pkg_check_modules(libsystemd REQUIRED IMPORTED_TARGET libsystemd)
 include(GNUInstallDirs)
 
 add_library(libaur STATIC
-    src/aur/aur.cc src/aur/aur.hh
-    src/aur/package.cc src/aur/package.hh
-    src/aur/request.cc src/aur/request.hh
-    src/aur/response.cc src/aur/response.hh
+    src/auracle/aur/aur.cc src/auracle/aur/aur.hh
+    src/auracle/aur/package.cc src/auracle/aur/package.hh
+    src/auracle/aur/request.cc src/auracle/aur/request.hh
+    src/auracle/aur/response.cc src/auracle/aur/response.hh
 )
 target_link_libraries(libaur
     PkgConfig::libsystemd
@@ -47,19 +47,19 @@ target_link_libraries(libaur
 #endif()
 
 add_library(libauracle STATIC
-    src/auracle/auracle.cc src/auracle/auracle.hh
-    src/auracle/dependency_kind.cc src/auracle/dependency_kind.hh
-    src/auracle/format.cc src/auracle/format.hh
-    src/auracle/package_cache.cc src/auracle/package_cache.hh
-    src/auracle/pacman.cc src/auracle/pacman.hh
-    src/auracle/search_fragment.cc src/auracle/search_fragment.hh
-    src/auracle/sort.cc src/auracle/sort.hh
-    src/auracle/terminal.cc src/auracle/terminal.hh
+    src/auracle/auracle/auracle.cc src/auracle/auracle/auracle.hh
+    src/auracle/auracle/dependency_kind.cc src/auracle/auracle/dependency_kind.hh
+    src/auracle/auracle/format.cc src/auracle/auracle/format.hh
+    src/auracle/auracle/package_cache.cc src/auracle/auracle/package_cache.hh
+    src/auracle/auracle/pacman.cc src/auracle/auracle/pacman.hh
+    src/auracle/auracle/search_fragment.cc src/auracle/auracle/search_fragment.hh
+    src/auracle/auracle/sort.cc src/auracle/auracle/sort.hh
+    src/auracle/auracle/terminal.cc src/auracle/auracle/terminal.hh
 )
-target_include_directories(libauracle PUBLIC src)
+target_include_directories(libauracle PUBLIC src/auracle/)
 target_compile_definitions(libauracle PUBLIC -DPROJECT_VERSION=\"${CMAKE_PROJECT_VERSION}\")
 target_link_libraries(libauracle libaur fmt::fmt absl::status PkgConfig::libalpm)
-add_executable(auracle src/auracle_main.cc)
+add_executable(auracle src/auracle/auracle_main.cc)
 target_link_libraries(auracle
     absl::container_common
     absl::strings
@@ -135,16 +135,16 @@ if (BUILD_TESTS)
     enable_testing()
 
     # Unit tests
-    add_executable(libaur_test src/aur/request_test.cc src/aur/response_test.cc)
+    add_executable(libaur_test src/auracle/aur/request_test.cc src/auracle/aur/response_test.cc)
     target_link_libraries(libaur_test libaur GTest::gtest_main GTest::gmock)
     gtest_discover_tests(libaur_test)
 
     add_executable(libauracle_test
-        src/auracle/dependency_kind_test.cc
-        src/auracle/package_cache_test.cc
-        src/auracle/format_test.cc
-        src/auracle/search_fragment_test.cc
-        src/auracle/sort_test.cc
+        src/auracle/auracle/dependency_kind_test.cc
+        src/auracle/auracle/package_cache_test.cc
+        src/auracle/auracle/format_test.cc
+        src/auracle/auracle/search_fragment_test.cc
+        src/auracle/auracle/sort_test.cc
     )
     target_link_libraries(libauracle_test GTest::gtest_main GTest::gmock libauracle)
     gtest_discover_tests(libauracle_test)
