@@ -24,29 +24,12 @@ pkg_check_modules(libsystemd REQUIRED IMPORTED_TARGET libsystemd)
 
 include(GNUInstallDirs)
 
-add_library(libaur STATIC
+add_library(libauracle STATIC
     src/auracle/aur/aur.cc src/auracle/aur/aur.hh
     src/auracle/aur/package.cc src/auracle/aur/package.hh
     src/auracle/aur/request.cc src/auracle/aur/request.hh
     src/auracle/aur/response.cc src/auracle/aur/response.hh
-)
-target_link_libraries(libaur
-    PkgConfig::libsystemd
-    absl::time
-    absl::flat_hash_set
-    CURL::libcurl
-)
 
-# Original meson did this (not really, but it tried, participation award for
-# meson), but it really doesn't matter:
-#if(APPLE)
-#    target_link_options(aur PUBLIC LINKER:-dead_strip)
-#elseif(CMAKE_COMPILER_IS_GNUCC)
-#    target_link_options(aur PUBLIC LINKER:--gc-sections)
-#    target_compile_options(aur PUBLIC -fdata-sections -ffunction-sections)
-#endif()
-
-add_library(libauracle STATIC
     src/auracle/auracle/auracle.cc src/auracle/auracle/auracle.hh
     src/auracle/auracle/dependency_kind.cc src/auracle/auracle/dependency_kind.hh
     src/auracle/auracle/format.cc src/auracle/auracle/format.hh
@@ -56,17 +39,22 @@ add_library(libauracle STATIC
     src/auracle/auracle/sort.cc src/auracle/auracle/sort.hh
     src/auracle/auracle/terminal.cc src/auracle/auracle/terminal.hh
 )
+set_target_properties(libauracle PROPERTIES PREFIX "")
+target_link_libraries(libauracle
+    CURL::libcurl
+    fmt::fmt
+    nlohmann_json::nlohmann_json
+    PkgConfig::libalpm
+    PkgConfig::libsystemd
+    absl::status
+    absl::time
+    absl::flat_hash_set
+)
 target_include_directories(libauracle PUBLIC src/auracle/)
 target_compile_definitions(libauracle PUBLIC -DPROJECT_VERSION=\"${CMAKE_PROJECT_VERSION}\")
-target_link_libraries(libauracle libaur fmt::fmt absl::status PkgConfig::libalpm)
-add_executable(auracle src/auracle/auracle_main.cc)
-target_link_libraries(auracle
-    absl::container_common
-    absl::strings
-    nlohmann_json::nlohmann_json
 
-    libauracle
-)
+add_executable(auracle src/auracle/auracle_main.cc)
+target_link_libraries(auracle absl::container_common absl::strings libauracle)
 install(TARGETS auracle)
 
 install(FILES extra/bash_completion
@@ -78,7 +66,6 @@ install(FILES extra/zsh_completion
     DESTINATION
     ${CMAKE_INSTALL_DATADIR}/zsh/site-functions
 )
-
 
 #find_program(
 #    CLANG_TIDY_EXE
@@ -136,7 +123,7 @@ if (BUILD_TESTS)
 
     # Unit tests
     add_executable(libaur_test src/auracle/aur/request_test.cc src/auracle/aur/response_test.cc)
-    target_link_libraries(libaur_test libaur GTest::gtest_main GTest::gmock)
+    target_link_libraries(libaur_test libauracle GTest::gtest_main GTest::gmock)
     gtest_discover_tests(libaur_test)
 
     add_executable(libauracle_test

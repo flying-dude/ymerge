@@ -242,7 +242,7 @@ void FormatCustomTo(std::string& out, std::string_view format,
 void Custom(const std::string_view format, const aur::Package& package) {
   std::string out;
   try {
-    // this call will throw guaranteed. but we keep the call still here to preserve the indent of
+    // this call will throw guaranteed. but we keep the call still here to preserve the intent of
     // what should be done inside this function.
     FormatCustomTo(out, format, package);
   } catch (const std::runtime_error& e) {
