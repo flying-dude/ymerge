@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AUR_PACKAGE_H
-#define AUR_PACKAGE_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -63,5 +62,3 @@ inline bool operator==(const Package& a, const Package& b) {
 }
 
 }  // namespace aur
-
-#endif  // AUR_PACKAGE_H

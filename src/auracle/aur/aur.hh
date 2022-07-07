@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AUR_AUR_HH_
-#define AUR_AUR_HH_
+#pragma once
 
 // https://www.fluentcpp.com/2019/08/30/how-to-disable-a-warning-in-cpp/
 #pragma GCC diagnostic push
@@ -78,5 +77,3 @@ class Aur {
 std::unique_ptr<Aur> NewAur(Aur::Options options = Aur::Options());
 
 }  // namespace aur
-
-#endif  // AUR_AUR_HH_

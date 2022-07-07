@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AUR_RESPONSE_HH_
-#define AUR_RESPONSE_HH_
+#pragma once
 
 #include "absl/status/status.h"
 #include "package.hh"
@@ -73,5 +72,3 @@ struct RawResponse {
 };
 
 }  // namespace aur
-
-#endif  // AUR_RESPONSE_HH_

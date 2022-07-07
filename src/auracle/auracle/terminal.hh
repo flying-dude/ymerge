@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AURACLE_TERMINAL_HH_
-#define AURACLE_TERMINAL_HH_
+#pragma once
 
 #include <string>
 
@@ -23,5 +22,3 @@ std::string BoldMagenta(const std::string& s);
 std::string BoldRed(const std::string& s);
 
 }  // namespace terminal
-
-#endif  // AURACLE_TERMINAL_HH_

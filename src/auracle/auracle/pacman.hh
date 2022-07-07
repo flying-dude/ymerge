@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AURACLE_PACMAN_HH_
-#define AURACLE_PACMAN_HH_
+#pragma once
 
 #include <alpm.h>
 
@@ -54,5 +53,3 @@ class Pacman {
 };
 
 }  // namespace auracle
-
-#endif  // AURACLE_PACMAN_HH_

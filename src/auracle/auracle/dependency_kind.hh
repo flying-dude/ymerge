@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AURACLE_DEPENDENCY_KIND_HH_
-#define AURACLE_DEPENDENCY_KIND_HH_
+#pragma once
 
 #include <set>
 #include <string_view>
@@ -23,5 +22,3 @@ const std::vector<aur::Dependency>& GetDependenciesByKind(
     const aur::Package* package, DependencyKind kind);
 
 }  // namespace auracle
-
-#endif  // AURACLE_DEPENDENCY_KIND_HH_

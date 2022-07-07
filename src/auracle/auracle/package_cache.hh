@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef PACKAGE_AURACLE_CACHE_HH_
-#define PACKAGE_AURACLE_CACHE_HH_
+#pragma once
 
 #include <functional>
 #include <set>
@@ -54,5 +53,3 @@ class PackageCache {
 };
 
 }  // namespace auracle
-
-#endif  // PACKAGE_AURACLE_CACHE_HH_

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AURACLE_AURACLE_HH_
-#define AURACLE_AURACLE_HH_
+#pragma once
 
 #include <set>
 #include <string>
@@ -107,5 +106,3 @@ class Auracle {
 };
 
 }  // namespace auracle
-
-#endif  // AURACLE_AURACLE_HH_

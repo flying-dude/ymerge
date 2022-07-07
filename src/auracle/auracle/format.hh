@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AURACLE_FORMAT_HH_
-#define AURACLE_FORMAT_HH_
+#pragma once
 
 #include <string_view>
 
@@ -21,5 +20,3 @@ void Custom(std::string_view format, const aur::Package& package);
 absl::Status Validate(std::string_view format);
 
 }  // namespace format
-
-#endif  // AURACLE_FORMAT_HH_

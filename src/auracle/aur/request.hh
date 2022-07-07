@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AUR_REQUEST_HH_
-#define AUR_REQUEST_HH_
+#pragma once
 
 #include <string>
 #include <utility>
@@ -185,5 +184,3 @@ class SearchRequest : public RpcRequest {
 };
 
 }  // namespace aur
-
-#endif  // AUR_REQUEST_HH_

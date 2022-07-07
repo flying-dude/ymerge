@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-#ifndef AUR_JSON_INTERNAL_HH_
-#define AUR_JSON_INTERNAL_HH_
+#pragma once
 
 #include "absl/container/flat_hash_map.h"
 #include "nlohmann/json.hpp"
@@ -55,5 +54,3 @@ void DeserializeJsonObject(const nlohmann::json& j,
 }
 
 }  // namespace aur
-
-#endif  // AUR_JSON_INTERNAL_HH_
