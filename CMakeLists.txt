@@ -24,21 +24,8 @@ pkg_check_modules(libsystemd REQUIRED IMPORTED_TARGET libsystemd)
 
 include(GNUInstallDirs)
 
-add_library(libauracle STATIC
-    src/auracle/aur/aur.cc src/auracle/aur/aur.hh
-    src/auracle/aur/package.cc src/auracle/aur/package.hh
-    src/auracle/aur/request.cc src/auracle/aur/request.hh
-    src/auracle/aur/response.cc src/auracle/aur/response.hh
-
-    src/auracle/auracle/auracle.cc src/auracle/auracle/auracle.hh
-    src/auracle/auracle/dependency_kind.cc src/auracle/auracle/dependency_kind.hh
-    src/auracle/auracle/format.cc src/auracle/auracle/format.hh
-    src/auracle/auracle/package_cache.cc src/auracle/auracle/package_cache.hh
-    src/auracle/auracle/pacman.cc src/auracle/auracle/pacman.hh
-    src/auracle/auracle/search_fragment.cc src/auracle/auracle/search_fragment.hh
-    src/auracle/auracle/sort.cc src/auracle/auracle/sort.hh
-    src/auracle/auracle/terminal.cc src/auracle/auracle/terminal.hh
-)
+file(GLOB_RECURSE libauracle_FILES src/auracle/auracle/* src/auracle/aur/*)
+add_library(libauracle SHARED ${libauracle_FILES})
 set_target_properties(libauracle PROPERTIES PREFIX "")
 target_link_libraries(libauracle
     CURL::libcurl
@@ -122,17 +109,9 @@ if (BUILD_TESTS)
     enable_testing()
 
     # Unit tests
-    add_executable(libaur_test src/auracle/aur/request_test.cc src/auracle/aur/response_test.cc)
-    target_link_libraries(libaur_test libauracle GTest::gtest_main GTest::gmock)
-    gtest_discover_tests(libaur_test)
-
-    add_executable(libauracle_test
-        src/auracle/auracle/dependency_kind_test.cc
-        src/auracle/auracle/package_cache_test.cc
-        src/auracle/auracle/format_test.cc
-        src/auracle/auracle/search_fragment_test.cc
-        src/auracle/auracle/sort_test.cc
-    )
+    file(GLOB libauracle_test_FILES src/auracle/auracle_test/* src/auracle/aur_test/*)
+    add_executable(libauracle_test ${libauracle_test_FILES})
+    target_include_directories(libauracle PUBLIC src/auracle/auracle src/auracle/aur)
     target_link_libraries(libauracle_test GTest::gtest_main GTest::gmock libauracle)
     gtest_discover_tests(libauracle_test)
 
