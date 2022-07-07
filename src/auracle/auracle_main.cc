@@ -5,7 +5,9 @@
 #include <clocale>
 #include <iostream>
 
-#include "absl/container/flat_hash_map.h"
+#include <absl/container/flat_hash_map.h>
+#include <fmt/core.h>
+
 #include "auracle/auracle.hh"
 #include "auracle/format.hh"
 #include "auracle/sort.hh"
