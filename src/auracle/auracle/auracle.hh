@@ -25,7 +25,7 @@ class Auracle {
       return *this;
     }
 
-    Options &set_pacman(Pacman *pacman) {
+    Options &set_pacman(std::shared_ptr<Pacman> pacman) {
       this->pacman = pacman;
       return *this;
     }
@@ -36,7 +36,7 @@ class Auracle {
     }
 
     std::string aur_baseurl = kAurBaseurl;
-    Pacman *pacman = nullptr;
+    std::shared_ptr<Pacman> pacman;
     bool quiet = false;
   };
 
@@ -92,7 +92,7 @@ class Auracle {
   void IteratePackages(std::vector<std::string> args, PackageIterator *state);
 
   std::unique_ptr<aur::Aur> aur_;
-  Pacman *pacman_;
+  std::shared_ptr<Pacman> pacman_;
 };
 
 }  // namespace auracle

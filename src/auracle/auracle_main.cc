@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
+#include <absl/container/flat_hash_map.h>
 #include <fmt/core.h>
 #include <getopt.h>
 
 #include <clocale>
 #include <iostream>
-
-#include <absl/container/flat_hash_map.h>
-#include <fmt/core.h>
 
 #include "auracle/auracle.hh"
 #include "auracle/format.hh"
@@ -210,7 +208,7 @@ int main_throws(int argc, char **argv) {
   terminal::Init(flags.color);
 
   const auto pacman = auracle::Pacman::New(flags.pacman_config);
-  auracle::Auracle auracle(auracle::Auracle::Options().set_aur_baseurl(flags.baseurl).set_pacman(pacman.get()));
+  auracle::Auracle auracle(auracle::Auracle::Options().set_aur_baseurl(flags.baseurl).set_pacman(pacman));
 
   const std::string_view action(argv[1]);
   const std::vector<std::string> args(argv + 2, argv + argc);

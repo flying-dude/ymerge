@@ -121,7 +121,7 @@ bool ParseOneFile(const std::string &path, ParseState *state) {
 }
 
 // static
-std::unique_ptr<Pacman> Pacman::New(const std::string &config_file) {
+std::shared_ptr<Pacman> Pacman::New(const std::string &config_file) {
   ParseState state;
   if (!ParseOneFile(config_file, &state))
     throw std::runtime_error(fmt::format("failed to parse config file: {}", config_file));
@@ -131,7 +131,7 @@ std::unique_ptr<Pacman> Pacman::New(const std::string &config_file) {
   if (alpm == nullptr) throw std::runtime_error(fmt::format("alpm failed with \"{}\"", alpm_strerror(err)));
 
   for (const auto &repo : state.repos) { alpm_register_syncdb(alpm, repo.c_str(), alpm_siglevel_t(0)); }
-  return std::unique_ptr<Pacman>(new Pacman(alpm));
+  return std::shared_ptr<Pacman>(new Pacman(alpm));
 }
 
 std::string Pacman::RepoForPackage(const std::string &package) const {

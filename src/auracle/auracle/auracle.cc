@@ -28,16 +28,16 @@ int ErrorNotEnoughArgs() {
   return -EINVAL;
 }
 
-void FormatLong(const std::vector<aur::Package> &packages, const auracle::Pacman *pacman) {
-  for (const auto &p : packages) { format::Long(p, pacman->GetLocalPackage(p.name)); }
+void FormatLong(const std::vector<aur::Package> &packages, auracle::Pacman &pacman) {
+  for (const auto &p : packages) { format::Long(p, pacman.GetLocalPackage(p.name)); }
 }
 
 void FormatNameOnly(const std::vector<aur::Package> &packages) {
   for (const auto &p : packages) { format::NameOnly(p); }
 }
 
-void FormatShort(const std::vector<aur::Package> &packages, const auracle::Pacman *pacman) {
-  for (const auto &p : packages) { format::Short(p, pacman->GetLocalPackage(p.name)); }
+void FormatShort(const std::vector<aur::Package> &packages, auracle::Pacman &pacman) {
+  for (const auto &p : packages) { format::Short(p, pacman.GetLocalPackage(p.name)); }
 }
 
 void FormatCustom(const std::vector<aur::Package> &packages, const std::string &format) {
@@ -164,7 +164,7 @@ int Auracle::Info(const std::vector<std::string> &args, const CommandOptions &op
   if (!options.format.empty()) {
     FormatCustom(packages, options.format);
   } else {
-    FormatLong(packages, pacman_);
+    FormatLong(packages, *pacman_);
   }
 
   return 0;
@@ -230,7 +230,7 @@ int Auracle::Search(const std::vector<std::string> &args, const CommandOptions &
   } else if (options.quiet) {
     FormatNameOnly(packages);
   } else {
-    FormatShort(packages, pacman_);
+    FormatShort(packages, *pacman_);
   }
 
   return 0;

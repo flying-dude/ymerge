@@ -205,7 +205,7 @@ int main_throws(int argc, const char **argv) {
 	whitelist = json::parse(*whitelist_bytes);
 
 	const auto pacman = auracle::Pacman::New();
-	auracle::Auracle auracle(auracle::Auracle::Options().set_aur_baseurl(kAurBaseurl).set_pacman(pacman.get()));
+	auracle::Auracle auracle(auracle::Auracle::Options().set_aur_baseurl(kAurBaseurl).set_pacman(pacman));
 
 	// collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
 	vector<shared_ptr<pkgbuild>> recipes;

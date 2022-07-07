@@ -19,8 +19,8 @@ class Pacman {
   };
 
   // Factory constructors.
-  static std::unique_ptr<Pacman> New() { return New("/etc/pacman.conf"); }
-  static std::unique_ptr<Pacman> New(const std::string &config_file);
+  static std::shared_ptr<Pacman> New() { return New("/etc/pacman.conf"); }
+  static std::shared_ptr<Pacman> New(const std::string &config_file);
 
   ~Pacman();
 
@@ -51,3 +51,4 @@ class Pacman {
 };
 
 }  // namespace auracle
+
