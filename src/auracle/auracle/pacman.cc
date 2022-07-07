@@ -120,7 +120,7 @@ bool ParseOneFile(const std::string &path, ParseState *state) {
 }
 
 // static
-std::unique_ptr<Pacman> Pacman::NewFromConfig(const std::string &config_file) {
+std::unique_ptr<Pacman> Pacman::New(const std::string &config_file) {
   ParseState state;
 
   if (!ParseOneFile(config_file, &state)) { return nullptr; }
@@ -173,3 +173,4 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 int Pacman::Vercmp(const std::string &a, const std::string &b) { return alpm_pkg_vercmp(a.c_str(), b.c_str()); }
 
 }  // namespace auracle
+

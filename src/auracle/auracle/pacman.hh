@@ -19,7 +19,7 @@ class Pacman {
   };
 
   // Factory constructor.
-  static std::unique_ptr<Pacman> NewFromConfig(const std::string &config_file);
+  static std::unique_ptr<Pacman> New(const std::string &config_file);
 
   ~Pacman();
 

@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
   std::setlocale(LC_ALL, "");
   terminal::Init(flags.color);
 
-  const auto pacman = auracle::Pacman::NewFromConfig(flags.pacman_config);
+  const auto pacman = auracle::Pacman::New(flags.pacman_config);
   if (pacman == nullptr) {
     std::cerr << "error: failed to parse " << flags.pacman_config << "\n";
     return 1;
