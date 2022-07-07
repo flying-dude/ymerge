@@ -173,4 +173,3 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 int Pacman::Vercmp(const std::string &a, const std::string &b) { return alpm_pkg_vercmp(a.c_str(), b.c_str()); }
 
 }  // namespace auracle
-
