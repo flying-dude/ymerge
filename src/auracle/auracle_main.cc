@@ -244,7 +244,6 @@ int main(int argc, char** argv) {
           // clang-format off
           {"buildorder",  &auracle::Auracle::BuildOrder},
           {"clone",       &auracle::Auracle::Clone},
-          {"download",    &auracle::Auracle::Clone},
           {"info",        &auracle::Auracle::Info},
           {"rawinfo",     &auracle::Auracle::RawInfo},
           {"rawsearch",   &auracle::Auracle::RawSearch},
