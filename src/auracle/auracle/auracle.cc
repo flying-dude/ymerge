@@ -334,29 +334,29 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
     const bool is_target = absl::c_find(args, name) != args.end();
 
     if (unknown) {
-      std::cout << "UNKNOWN";
+      std::cout << " [???] ";
       r = -ENXIO;
     } else {
-      if (is_target) {
-        std::cout << "TARGET";
-      } else if (satisfied) {
-        std::cout << "SATISFIED";
-      }
+      if (from_aur)
+        std::cout << " [aur] ";
+      else
+        std::cout << "[repo] ";
 
-      if (from_aur) {
-        std::cout << "AUR";
-      } else {
-        std::cout << "REPOS";
-      }
+      if (satisfied)
+        std::cout << "available ::";
+      else
+        std::cout << "  install ::";
+
+      if (is_target) std::cout << " ->";
     }
 
     if (unknown) {
-      for (auto iter = dependency_path.crbegin(); iter != dependency_path.crend(); ++iter) {
-        std::cout << " " << *iter;
-      }
+      for (auto iter = dependency_path.crbegin(); iter != dependency_path.crend(); ++iter) std::cout << " " << *iter;
     } else {
-      std::cout << " " << name;
-      if (from_aur) { std::cout << " " << pkg->pkgbase; }
+      if (from_aur)
+        std::cout << " " << pkg->pkgbase << "-" << pkg->version;
+      else
+        std::cout << " " << name;  // TODO print version for pacman packages
     }
 
     std::cout << "\n";
@@ -474,3 +474,4 @@ int Auracle::RawInfo(const std::vector<std::string> &args, const CommandOptions 
 }  // namespace auracle
 
 /* vim: set et ts=2 sw=2: */
+
