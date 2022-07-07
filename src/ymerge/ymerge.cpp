@@ -80,9 +80,19 @@ char **envp;
 } // namespace fly
 
 using namespace fly;
+
+int main_throws(int argc, const char **argv);
 int main(int argc, const char **argv, char *envp_[]) {
 	envp = envp_;
+	try {
+		return main_throws(argc, argv);
+	} catch (const runtime_error &err) {
+		fmt::print(stderr, "error: {}\n", err.what());
+		return 1;
+	}
+}
 
+int main_throws(int argc, const char **argv) {
 	if (argc == 1) {
 		cout << short_usage << endl;
 		return 0;
