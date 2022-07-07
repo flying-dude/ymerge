@@ -18,7 +18,8 @@ class Pacman {
     std::string pkgver;
   };
 
-  // Factory constructor.
+  // Factory constructors.
+  static std::unique_ptr<Pacman> New() { return New("/etc/pacman.conf"); }
   static std::unique_ptr<Pacman> New(const std::string &config_file);
 
   ~Pacman();
