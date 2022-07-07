@@ -18,10 +18,6 @@
 
 namespace fly {
 
-/// Assign this one immediately, when entering main(argc, argv, envp)
-/// https://stackoverflow.com/questions/31034993/how-does-a-program-inherit-environment-variables
-extern char **envp;
-
 /// Provide extra options, like working dir, to the executed command.
 struct cmd_options {
 	std::optional<std::string> stdout_file = std::nullopt;

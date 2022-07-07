@@ -77,16 +77,13 @@ path pkg_dir;
 path repo_dir;
 json whitelist;
 
-char **envp;
-
 } // namespace fly
 
 using namespace auracle;
 using namespace fly;
 
 int main_throws(int argc, const char **argv);
-int main(int argc, const char **argv, char *envp_[]) {
-	envp = envp_;
+int main(int argc, const char **argv) {
 	try {
 		return main_throws(argc, argv);
 	} catch (const runtime_error &err) {

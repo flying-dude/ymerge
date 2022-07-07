@@ -7,8 +7,6 @@
 
 #include <xresult.hpp>
 
-int ymerge_main(int argc, const char **argv, char *envp[]);
-
 namespace fly {
 
 namespace flag {
