@@ -45,6 +45,9 @@ Examples:
     Update the package database:
     $ ymerge --sync
 
+    Update the the package manager:
+    $ ymerge --sync ymerge
+
     Install the "xmake" and "build2" packages:
     $ ymerge xmake build2
 

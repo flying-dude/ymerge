@@ -9,6 +9,8 @@
  * type instead of keeping it hidden, like C++ does with exceptions.
  */
 
+// TODO this file can probably be replaced with std::expected once it is available
+
 namespace fly {
 
 /// Used as wrapper for return values of type T but with a possible exception of type Err.

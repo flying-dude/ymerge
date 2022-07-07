@@ -308,7 +308,7 @@ int Auracle::Show(const std::vector<std::string> &args, const CommandOptions &op
 int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptions &options) {
   if (args.empty()) { return ErrorNotEnoughArgs(); }
 
-  PackageIterator iter(/* recurse = */ true, options.resolve_depends, nullptr);
+  PackageIterator iter(/* recurse = */ true, options.resolve_depends);
   IteratePackages(args, &iter);
 
   int r = aur_->Wait();

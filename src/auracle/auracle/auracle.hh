@@ -73,7 +73,7 @@ class Auracle {
   struct PackageIterator {
     using PackageCallback = std::function<void(const aur::Package &)>;
 
-    PackageIterator(bool recurse, std::set<DependencyKind> resolve_depends, PackageCallback callback)
+    PackageIterator(bool recurse, std::set<DependencyKind> resolve_depends, PackageCallback callback = nullptr)
         : recurse(recurse), resolve_depends(resolve_depends), callback(std::move(callback)) {}
 
     bool recurse;
@@ -92,3 +92,4 @@ class Auracle {
 };
 
 }  // namespace auracle
+
