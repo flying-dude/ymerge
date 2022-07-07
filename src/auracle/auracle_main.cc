@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+#include <fmt/core.h>
 #include <getopt.h>
 
 #include <clocale>
@@ -186,7 +187,18 @@ bool Flags::ParseFromArgv(int *argc, char ***argv) {
 
 }  // namespace
 
+int main_throws(int argc, char **argv);
 int main(int argc, char **argv) {
+  try {
+    return main_throws(argc, argv);
+  } catch (const std::runtime_error &e) {
+    fmt::print(stderr, "error: {}\n", e.what());
+    return 1;
+  }
+}
+
+// this one might throw but does not catch exceptions
+int main_throws(int argc, char **argv) {
   Flags flags;
   if (!flags.ParseFromArgv(&argc, &argv)) { return 1; }
 
@@ -199,11 +211,6 @@ int main(int argc, char **argv) {
   terminal::Init(flags.color);
 
   const auto pacman = auracle::Pacman::New(flags.pacman_config);
-  if (pacman == nullptr) {
-    std::cerr << "error: failed to parse " << flags.pacman_config << "\n";
-    return 1;
-  }
-
   auracle::Auracle auracle(auracle::Auracle::Options().set_aur_baseurl(flags.baseurl).set_pacman(pacman.get()));
 
   const std::string_view action(argv[1]);

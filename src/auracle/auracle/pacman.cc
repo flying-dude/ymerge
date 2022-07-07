@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "pacman.hh"
 
+#include <fmt/core.h>
 #include <glob.h>
 
 #include <fstream>
@@ -122,15 +123,14 @@ bool ParseOneFile(const std::string &path, ParseState *state) {
 // static
 std::unique_ptr<Pacman> Pacman::New(const std::string &config_file) {
   ParseState state;
-
-  if (!ParseOneFile(config_file, &state)) { return nullptr; }
+  if (!ParseOneFile(config_file, &state))
+    throw std::runtime_error(fmt::format("failed to parse config file: {}", config_file));
 
   alpm_errno_t err;
   alpm_handle_t *alpm = alpm_initialize("/", state.dbpath.c_str(), &err);
-  if (alpm == nullptr) { return nullptr; }
+  if (alpm == nullptr) throw std::runtime_error(fmt::format("alpm failed with \"{}\"", alpm_strerror(err)));
 
   for (const auto &repo : state.repos) { alpm_register_syncdb(alpm, repo.c_str(), alpm_siglevel_t(0)); }
-
   return std::unique_ptr<Pacman>(new Pacman(alpm));
 }
 
@@ -173,3 +173,4 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 int Pacman::Vercmp(const std::string &a, const std::string &b) { return alpm_pkg_vercmp(a.c_str(), b.c_str()); }
 
 }  // namespace auracle
+
