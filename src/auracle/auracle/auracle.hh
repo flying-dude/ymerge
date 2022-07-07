@@ -13,6 +13,10 @@
 
 namespace auracle {
 
+// https://www.fluentcpp.com/2019/07/23/how-to-define-a-global-constant-in-cpp/
+inline const char *kAurBaseurl = "https://aur.archlinux.org";
+inline const char *kPacmanConf = "/etc/pacman.conf";
+
 class Auracle {
  public:
   struct Options {
@@ -31,7 +35,7 @@ class Auracle {
       return *this;
     }
 
-    std::string aur_baseurl;
+    std::string aur_baseurl = kAurBaseurl;
     Pacman *pacman = nullptr;
     bool quiet = false;
   };
