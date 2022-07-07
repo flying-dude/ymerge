@@ -68,7 +68,6 @@ std::pair<std::string_view, std::string_view> SplitKeyValue(std::string_view lin
 namespace auracle {
 
 Pacman::Pacman(alpm_handle_t *alpm) : alpm_(alpm), local_db_(alpm_get_localdb(alpm_)) {}
-
 Pacman::~Pacman() { alpm_release(alpm_); }
 
 struct ParseState {
