@@ -1,0 +1,215 @@
+=head1 NAME
+
+auracle - an AUR client with a focus on flexibility
+
+=head1 SYNOPSIS
+
+I<auracle> [OPTIONS...] COMMAND [ARGS...]
+
+=head1 DESCRIPTION
+
+auracle is a tool for querying information stored by the Arch User Repository
+(AUR). Invoking auracle consists of supplying an operation, any applicable
+options, and usually one or more arguments.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--color=>
+
+Control colored output. Argument must be one of I<auto>, I<never>, or
+I<always>. When set to I<auto>, color will be enabled if stdout is connected
+to a terminal.
+
+This option defaults to I<auto>.
+
+=item B<-h>, B<--help>
+
+Print a short help text and exit.
+
+=item B<--literal>
+
+When used with the B<search> command, interpret all search terms as literal,
+rather than as regular expressions.
+
+=item B<--quiet>
+
+When used with the B<search> and B<outdated> commands, output will be limited to
+package names only.
+
+=item B<-r>, B<--recurse>
+
+When used with the B<clone> command, recursively follow and clone
+dependencies of each given argument.
+
+=item B<--resolve-deps=>I<DEPLIST>
+
+When performing recursive operations, control the kinds of dependencies that
+auracle will consider. By default, this is all dependency kinds -- I<depends>,
+I<makedepends>, and I<checkdepends>. This flag takes a comma-delimited string
+value with one to many of these dependency kinds.
+
+Additionally, some special syntax exists to make this more composable. A
+leading I<!> or I<^> character will cause dependencies to be removed from the
+set, whereas a leading I<+> will cause dependencies to be added to the set.
+These special indicators are only understood when they appear as the first
+character in the string and never after a comma.
+
+Specifying this flag multiple times is additive, for example:
+
+  auracle buildorder --resolve-deps=depends --resolve-deps=+makedepends
+
+Is the same as I<depends,makedepends> or I<^checkdepends>.
+
+=item B<--searchby=>I<BY>
+
+When used with the B<search> and B<rawsearch> commands, change the search
+dimension. I<BY> must be one of I<name>, I<name-desc>, I<maintainer>,
+I<depends>, I<makedepends>, I<optdepends>, or I<checkdepends>.
+
+This option defaults to I<name-desc>.
+
+=item B<--sort=>I<KEY>, B<--rsort=>I<KEY>
+
+For search and info queries, sorts the results in ascending and descending
+order, respectively. I<KEY> must be one of: B<name>, B<popularity>, B<votes>,
+B<firstsubmitted>, or B<lastmodified>.
+
+This option defaults to sorting by B<name> in ascending order.
+
+=item B<--show-file=>I<FILE>
+
+Name of the file to fetch with the B<show> command.
+
+This option defaults to B<PKGBUILD>.
+
+=item B<-C >I<DIR>, B<--chdir=>I<DIR>
+
+Change directory to I<DIR> before performing any actions. Only useful with the
+B<clone> command.
+
+=back
+
+=head1 COMMANDS
+
+=over 4
+
+=item B<buildorder> I<PACKAGES>...
+
+Pass one to many arguments to print a build order for the given packages.  The
+resulting output will be the total ordering to build all packages. Each line is
+at least two columns delimited by a single whitespace. The first column contains an
+identifier and the second column names the dependency. Possible identifiers
+are:
+
+=over 4
+
+B<AUR>        The dependency was found in the AUR and needs to be built and
+installed. The output will contain an additional column of the pkgbase the
+package is provided by.
+
+B<REPOS>      The dependency was found in a binary repo and can be installed via pacman.
+
+B<UNKNOWN>    The dependency was unable to be found anywhere. This might
+indicate a broken dependency chain. The output will contain additional columns
+denoting the dependency path that was walked (in reverse) to get to the missing
+dependency.
+
+=back
+
+Additionally, both of B<AUR> and B<REPOS> can be prefixed with B<SATISFIED> to
+indicate that the dependency is already installed. B<AUR> may be prefixed with
+B<TARGET> to indicate that the package was explicitly specified on the
+commandline.
+
+=item B<clone> I<PACKAGES>...
+
+Pass one to many arguments to get clone git repositories. Use the
+B<--recurse> flag to get dependencies of packages. If the git repository
+already exists, the repository will instead be updated. A best effort attempt
+will be made to preserve existing local changes to packages. Auracle will
+instruct git to autostash staged changes and will then rebase new incoming
+changes before unstashing. This is intended to handle the case of makepkg
+updating the I<pkgver> attribute of PKGBUILDs but may not handle more complex
+changes made by a local user.
+
+=item B<info> I<PACKAGES>...
+
+Pass one to many arguments to perform an info query.
+
+=item B<rawinfo> I<PACKAGES>...
+
+Dump the raw JSON response from the AUR for an info request.
+
+=item B<rawsearch> I<TERMS>...
+
+Dump the raw JSON response from the AUR for search requests formed from the
+given terms.
+
+=item B<search> I<TERMS>...
+
+Pass one to many arguments to perform a search query. Results will be the
+intersection of all terms. Terms may be a regular expression as described by
+the POSIX extended regex specification.
+
+B<NOTE>: the AUR does not actually support searching by regular expressions
+and support in auracle is implemented on a best-effort basis.
+
+=item B<show> I<PACKAGES>...
+
+Pass one to many arguments to print source files for the given packages. The
+file fetched is controlled by the B<--show-file> flag.
+
+=item B<outdated> [I<PACKAGES>...]
+
+Pass one to many arguments to check for newer versions existing in the AUR.
+Each argument is assumed to be a package installed locally using B<pacman>(8).
+If no arguments are given, pacman is queried for all foreign packages as an
+input to this operation.
+
+=item B<update> [I<PACKAGES>...]
+
+Similar to B<outdated>, but download packages found to be outdated. Pass the
+B<--recurse> flag to download new dependencies of packages as well.
+
+=back
+
+=head1 CUSTOM FORMATTING
+
+Auracle provides the ability to customize the output format from B<info> and
+B<search> operations. The format specification is similar to that of python.
+Each field is wrapped in curly brackets and is optionally suffixed with a colon
+and additional formatting directives.
+
+B<NOTE:> not all fields are available for B<search> queries.
+
+String fields: B<{name}>, B<{version}>, B<{description}>, B<{maintainer}>,
+B<{pkgbase}>, B<{url}>.
+
+Floating point fields: B<{votes}>, B<{popularity}>.
+
+Time fields: B<{submitted}>, B<{modified}>, B<{outofdate}>. These fields
+default to using your locale's default date and time, but can be further
+customized in their format, according to the specifier described in
+strftime(3), For example, B<{submitted:%Y.%m.%d}> would show year month and
+day in dotted form.
+
+String array fields: B<{depends}>, B<{makedepends}>, B<{checkdepends}>,
+B<{optdepends}>, B<{conflicts}>, B<{provides}>, B<{replaces}>, B<{groups}>,
+B<{keywords}>, B<{licenses}>. These fields default to using a delimiter of two
+whitespace, but can be customized, e.g.  B<{depends:,}> to comma delimit the
+values of the depends field.
+
+Example: recreating auracle's search output:
+
+  auracle search -F $'aur/{name} ({votes}, {popularity})\n    {description}' ...
+
+Example: listing dependencies of packages:
+
+  auracle info -F '{depends} {makedepends} {checkdepends}' ...
+
+=head1 AUTHOR
+
+Dave Reisner E<lt>d@falconindy.comE<gt>
+

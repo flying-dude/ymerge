@@ -176,7 +176,7 @@ int main(int argc, const char **argv, char *envp_[]) {
 	}
 
 	if (!exists(git_dir)) {
-		error("package dir \"%s\" not present. use \"ymerge --sync\" to fetch package database.",
+		error("package dir \"{}\" not present. use \"ymerge --sync\" to fetch package database.",
 		      pkg_dir.c_str());
 		return 1;
 	}
