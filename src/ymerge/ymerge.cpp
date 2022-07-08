@@ -86,7 +86,7 @@ int main_throws(int argc, const char **argv);
 int main(int argc, const char **argv) {
 	try {
 		return main_throws(argc, argv);
-	} catch (const runtime_error &err) {
+	} catch (const exception &err) {
 		fmt::print(stderr, "error: {}\n", err.what());
 		return 1;
 	}

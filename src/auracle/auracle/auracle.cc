@@ -96,7 +96,6 @@ void Auracle::IteratePackages(std::vector<std::string> args, Auracle::PackageIte
 
   for (const auto &arg : args) {
     if (state->package_cache.LookupByPkgname(arg) != nullptr) { continue; }
-
     info_request.AddArg(arg);
   }
 
@@ -356,7 +355,7 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
       if (from_aur)
         std::cout << " " << pkg->pkgbase << "-" << pkg->version;
       else
-        std::cout << " " << name;  // TODO print version for pacman packages
+        std::cout << " " << name;  // TODO print version for pacman packages as well
     }
 
     std::cout << "\n";
@@ -467,11 +466,9 @@ int Auracle::RawSearch(const std::vector<std::string> &args, const CommandOption
 
 int Auracle::RawInfo(const std::vector<std::string> &args, const CommandOptions &) {
   aur_->QueueRawRequest(aur::InfoRequest(args), &RawSearchDone);
-
   return aur_->Wait();
 }
 
 }  // namespace auracle
 
 /* vim: set et ts=2 sw=2: */
-

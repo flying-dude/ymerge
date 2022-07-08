@@ -42,10 +42,8 @@ class DependencyPath : public std::vector<std::string> {
  public:
   class Step {
    public:
-    Step(DependencyPath& dependency_path, std::string step)
-        : dependency_path_(dependency_path) {
+    Step(DependencyPath& dependency_path, std::string step) : dependency_path_(dependency_path) {
       MaybeReportCycle(step);
-
       dependency_path_.push_back(step);
     }
 

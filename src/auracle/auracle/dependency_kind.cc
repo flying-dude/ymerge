@@ -61,8 +61,7 @@ bool ParseDependencyKinds(std::string_view input,
   return true;
 }
 
-const std::vector<aur::Dependency>& GetDependenciesByKind(
-    const aur::Package* package, DependencyKind kind) {
+const std::vector<aur::Dependency>& GetDependenciesByKind(const aur::Package* package, DependencyKind kind) {
   switch (kind) {
     case DependencyKind::Depend:
       return package->depends;
@@ -70,9 +69,9 @@ const std::vector<aur::Dependency>& GetDependenciesByKind(
       return package->makedepends;
     case DependencyKind::CheckDepend:
       return package->checkdepends;
+    default:
+      throw std::logic_error("unhandled DependencyKind");
   }
-
-  throw std::logic_error("unhandled DependencyKind");
 }
 
 }  // namespace auracle

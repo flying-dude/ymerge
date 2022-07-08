@@ -51,4 +51,3 @@ class Pacman {
 };
 
 }  // namespace auracle
-

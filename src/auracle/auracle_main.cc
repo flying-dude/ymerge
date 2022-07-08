@@ -188,7 +188,7 @@ int main_throws(int argc, char **argv);
 int main(int argc, char **argv) {
   try {
     return main_throws(argc, argv);
-  } catch (const std::runtime_error &e) {
+  } catch (const std::exception &e) {
     fmt::print(stderr, "error: {}\n", e.what());
     return 1;
   }
