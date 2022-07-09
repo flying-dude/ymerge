@@ -47,7 +47,6 @@ add_library(youtil SHARED ${youtil_FILES})
 
 add_executable(auracle src/auracle/auracle_main.cc)
 target_link_libraries(auracle absl::container_common absl::strings libauracle)
-install(TARGETS auracle)
 
 file(GLOB_RECURSE libauracle_FILES src/auracle/auracle/* src/auracle/aur/*)
 add_library(libauracle SHARED ${libauracle_FILES})
@@ -62,6 +61,8 @@ target_link_libraries(libauracle
     absl::status
     absl::time
 )
+
+install(TARGETS ymerge youtil auracle libauracle)
 
 install(FILES extra/bash_completion
     RENAME auracle
