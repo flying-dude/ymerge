@@ -40,7 +40,7 @@ class Auracle {
     bool quiet = false;
   };
 
-  Auracle() : Auracle(auracle::Auracle::Options().set_pacman(auracle::Pacman::New())) {}
+  Auracle() : Auracle(auracle::Auracle::Options().set_pacman(std::make_shared<auracle::Pacman>())) {}
   explicit Auracle(Options options);
 
   ~Auracle() = default;

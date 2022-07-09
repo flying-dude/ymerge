@@ -207,7 +207,7 @@ int main_throws(int argc, char **argv) {
   std::setlocale(LC_ALL, "");
   terminal::Init(flags.color);
 
-  const auto pacman = auracle::Pacman::New(flags.pacman_config);
+  const auto pacman = std::make_shared<auracle::Pacman>(flags.pacman_config);
   auracle::Auracle auracle(auracle::Auracle::Options().set_aur_baseurl(flags.baseurl).set_pacman(pacman));
 
   const std::string_view action(argv[1]);

@@ -17,12 +17,6 @@ struct Pacman {
     std::string pkgver;
   };
 
-  // Factory constructors.
-  static std::shared_ptr<Pacman> New() { return New("/etc/pacman.conf"); }
-  static std::shared_ptr<Pacman> New(const std::string &config_file) {
-    return std::shared_ptr<Pacman>(new Pacman(config_file));
-  }
-
   Pacman() : Pacman("/etc/pacman.conf") {}
   Pacman(const std::string &config_file);
   ~Pacman() { alpm_release(alpm_); }
@@ -38,8 +32,8 @@ struct Pacman {
   // Returns the name of the repo that the package belongs to, or std::nullopt
   // if the package was not found in any repo.
   std::optional<std::string> RepoForPackage(const std::string &package) const;
-
   bool HasPackage(const std::string &package) const { return RepoForPackage(package).has_value(); }
+
   bool DependencyIsSatisfied(const std::string &package) const;
 
   std::vector<Package> LocalPackages() const;
