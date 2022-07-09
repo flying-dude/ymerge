@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # use the same flags as makepkg so that we get the same warnings during development
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wp,-D_FORTIFY_SOURCE=2 -O")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wp,-D_FORTIFY_SOURCE=2 -O -Wp,-D_GLIBCXX_ASSERTIONS")
 
 if(DEFINED YMERGE_VERSION)
     add_definitions(-DYMERGE_VERSION="${YMERGE_VERSION}")
@@ -38,11 +38,11 @@ include_directories(src/auracle)
 include_directories(src/youtil)
 include_directories(src/ymerge)
 
-file(GLOB_RECURSE ymerge_FILES src/ymerge/*.cpp)
+file(GLOB_RECURSE ymerge_FILES src/ymerge/*)
 add_executable(ymerge ${ymerge_FILES})
 target_link_libraries(ymerge libauracle youtil fmt::fmt)
 
-file(GLOB_RECURSE youtil_FILES src/youtil/*.cpp src/youtil/*.c)
+file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})
 
 add_executable(auracle src/auracle/auracle_main.cc)
