@@ -35,12 +35,11 @@ struct Pacman {
 
   static int Vercmp(const std::string &a, const std::string &b);
 
-  // Returns the name of the repo that the package belongs to, or empty string
+  // Returns the name of the repo that the package belongs to, or std::nullopt
   // if the package was not found in any repo.
-  std::string RepoForPackage(const std::string &package) const;
+  std::optional<std::string> RepoForPackage(const std::string &package) const;
 
-  bool HasPackage(const std::string &package) const { return !RepoForPackage(package).empty(); }
-
+  bool HasPackage(const std::string &package) const { return RepoForPackage(package).has_value(); }
   bool DependencyIsSatisfied(const std::string &package) const;
 
   std::vector<Package> LocalPackages() const;

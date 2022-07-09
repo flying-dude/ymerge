@@ -130,7 +130,7 @@ Pacman::Pacman(const std::string &config_file) {
   this->local_db_ = alpm_get_localdb(alpm_);
 }
 
-std::string Pacman::RepoForPackage(const std::string &package) const {
+std::optional<std::string> Pacman::RepoForPackage(const std::string &package) const {
   for (auto i = alpm_get_syncdbs(alpm_); i != nullptr; i = i->next) {
     auto db = static_cast<alpm_db_t *>(i->data);
     auto pkgcache = alpm_db_get_pkgcache(db);
@@ -138,7 +138,7 @@ std::string Pacman::RepoForPackage(const std::string &package) const {
     if (alpm_find_satisfier(pkgcache, package.c_str()) != nullptr) { return alpm_db_get_name(db); }
   }
 
-  return std::string();
+  return std::nullopt;
 }
 
 bool Pacman::DependencyIsSatisfied(const std::string &package) const {
