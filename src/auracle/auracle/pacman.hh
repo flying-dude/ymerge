@@ -10,8 +10,7 @@
 
 namespace auracle {
 
-class Pacman {
- public:
+struct Pacman {
   struct Package {
     Package(std::string pkgname, std::string pkgver) : pkgname(std::move(pkgname)), pkgver(std::move(pkgver)) {}
     std::string pkgname;
@@ -20,9 +19,13 @@ class Pacman {
 
   // Factory constructors.
   static std::shared_ptr<Pacman> New() { return New("/etc/pacman.conf"); }
-  static std::shared_ptr<Pacman> New(const std::string &config_file);
+  static std::shared_ptr<Pacman> New(const std::string &config_file) {
+    return std::shared_ptr<Pacman>(new Pacman(config_file));
+  }
 
-  ~Pacman();
+  Pacman() : Pacman("/etc/pacman.conf") {}
+  Pacman(const std::string &config_file);
+  ~Pacman() { alpm_release(alpm_); }
 
   Pacman(const Pacman &) = delete;
   Pacman &operator=(const Pacman &) = delete;
@@ -42,9 +45,6 @@ class Pacman {
 
   std::vector<Package> LocalPackages() const;
   std::optional<Package> GetLocalPackage(const std::string &name) const;
-
- private:
-  Pacman(alpm_handle_t *alpm);
 
   alpm_handle_t *alpm_;
   alpm_db_t *local_db_;

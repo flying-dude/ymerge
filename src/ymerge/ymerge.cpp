@@ -201,7 +201,7 @@ int main_throws(int argc, const char **argv) {
 	}
 	whitelist = json::parse(*whitelist_bytes);
 
-	auracle::Auracle auracle;
+	auracle::Pacman pacman;
 
 	// collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
 	vector<shared_ptr<pkgbuild>> recipes;

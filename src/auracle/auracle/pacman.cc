@@ -67,9 +67,6 @@ std::pair<std::string_view, std::string_view> SplitKeyValue(std::string_view lin
 
 namespace auracle {
 
-Pacman::Pacman(alpm_handle_t *alpm) : alpm_(alpm), local_db_(alpm_get_localdb(alpm_)) {}
-Pacman::~Pacman() { alpm_release(alpm_); }
-
 struct ParseState {
   std::string dbpath = "/var/lib/pacman";
   std::string rootdir = "/";
@@ -119,8 +116,7 @@ bool ParseOneFile(const std::string &path, ParseState *state) {
   return reader.ok();
 }
 
-// static
-std::shared_ptr<Pacman> Pacman::New(const std::string &config_file) {
+Pacman::Pacman(const std::string &config_file) {
   ParseState state;
   if (!ParseOneFile(config_file, &state))
     throw std::runtime_error(fmt::format("failed to parse config file: {}", config_file));
@@ -128,9 +124,10 @@ std::shared_ptr<Pacman> Pacman::New(const std::string &config_file) {
   alpm_errno_t err;
   alpm_handle_t *alpm = alpm_initialize("/", state.dbpath.c_str(), &err);
   if (alpm == nullptr) throw std::runtime_error(fmt::format("alpm failed with \"{}\"", alpm_strerror(err)));
+  this->alpm_ = alpm;
 
   for (const auto &repo : state.repos) { alpm_register_syncdb(alpm, repo.c_str(), alpm_siglevel_t(0)); }
-  return std::shared_ptr<Pacman>(new Pacman(alpm));
+  this->local_db_ = alpm_get_localdb(alpm_);
 }
 
 std::string Pacman::RepoForPackage(const std::string &package) const {
@@ -161,7 +158,6 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 
   for (auto i = alpm_db_get_pkgcache(local_db_); i != nullptr; i = i->next) {
     const auto pkg = static_cast<alpm_pkg_t *>(i->data);
-
     packages.emplace_back(alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg));
   }
 
