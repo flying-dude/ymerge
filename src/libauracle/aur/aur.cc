@@ -16,6 +16,9 @@
 #include "absl/status/status.h"
 #include "absl/strings/strip.h"
 
+#include <chrono> // for polling the Wait() function
+#include <thread> // for polling the Wait() function
+
 namespace fs = std::filesystem;
 
 namespace aur {
@@ -480,12 +483,26 @@ int AurImpl::CheckFinished() {
 }
 
 int AurImpl::Wait() {
+  static int p = 0;
   cancelled_ = false;
 
+  // loop could get stuck at last request
+  size_t requests = active_requests_.size();
   while (!active_requests_.empty()) {
     if (sd_event_run(event_, 1) < 0) {
       return -EIO;
     }
+
+    // reset timer, if requests actually go down
+    if (active_requests_.size() < requests) {
+      requests = active_requests_.size();
+      p = 0;
+    }
+
+    // to break the endless loop, abort after a timeout of 5 seconds
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    if(p++ * 50 > 5000)
+      throw std::runtime_error("reached timeout when trying to satisfy RPC requests. this is a bug in the event loop implementation that we have.");
   }
 
   return cancelled_ ? -ECANCELED : 0;
