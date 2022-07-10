@@ -12,8 +12,6 @@
 
 namespace auracle {
 
-struct SyncDB;
-
 struct Pacman {
   Pacman() : Pacman("/etc/pacman.conf") {}
   Pacman(const std::string &config_file);
@@ -29,10 +27,9 @@ struct Pacman {
 
   // Returns the name of the repo that the package belongs to, or std::nullopt
   // if the package was not found in any repo.
-  std::optional<SyncDB> RepoForPackage(const std::string &package) const;
+  std::optional<alpm::db> RepoForPackage(const std::string &package) const;
 
-  // note: implementation cannot be put here directly, since SyncDB struct is forward-declared
-  bool HasPackage(const std::string &package) const;
+  bool HasPackage(const std::string &package) const { return RepoForPackage(package).has_value(); }
 
   bool DependencyIsSatisfied(const std::string &package) const;
 
@@ -43,15 +40,7 @@ struct Pacman {
   std::optional<alpm::pkg> GetLocalPackage(const std::string &name) const;
 
   alpm_handle_t *alpm_;
-  alpm_db_t *local_db_;
-};
-
-// a binary package database operated by pacman
-struct SyncDB {
-  SyncDB(alpm_db_t *db_) : db(db_) {}
-  alpm_db_t *db;
-  std::string get_name() { return alpm_db_get_name(db); }
-  std::optional<alpm::pkg> find_satisfier(std::string name);
+  alpm::db local_db_;
 };
 
 }  // namespace auracle

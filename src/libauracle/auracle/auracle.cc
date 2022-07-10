@@ -328,7 +328,7 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
   }
 
   for (const auto &[name, pkg, dependency_path] : total_ordering) {
-    std::optional<SyncDB> repo = pacman_->RepoForPackage(name);
+    std::optional<alpm::db> repo = pacman_->RepoForPackage(name);
 
     const bool satisfied = pacman_->DependencyIsSatisfied(name);
     const bool from_aur = pkg != nullptr;
