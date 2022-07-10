@@ -48,8 +48,7 @@ class AurImpl : public Aur {
   int Wait() override;
 
  private:
-  using ActiveRequests =
-      absl::flat_hash_set<std::variant<CURL*, sd_event_source*>>;
+  using ActiveRequests = absl::flat_hash_set<std::variant<CURL*, sd_event_source*>>;
 
   template <typename ResponseHandlerType>
   void QueueHttpRequest(
@@ -548,7 +547,6 @@ void AurImpl::QueueHttpRequest(
 int AurImpl::OnCloneExit(sd_event_source* source, const siginfo_t* si,
                          void* userdata) {
   auto* handler = static_cast<CloneResponseHandler*>(userdata);
-
   handler->aur()->FinishRequest(source);
 
   absl::Status status;
@@ -560,12 +558,9 @@ int AurImpl::OnCloneExit(sd_event_source* source, const siginfo_t* si,
   return handler->RunCallback(std::move(status));
 }
 
-void AurImpl::QueueCloneRequest(const CloneRequest& request,
-                                const CloneResponseCallback& callback) {
+void AurImpl::QueueCloneRequest(const CloneRequest& request, const CloneResponseCallback& callback) {
   const bool update = fs::exists(fs::path(request.reponame()) / ".git");
-
-  auto* handler =
-      new CloneResponseHandler(this, callback, update ? "update" : "clone");
+  auto* handler = new CloneResponseHandler(this, callback, update ? "update" : "clone");
 
   int pid = fork();
   if (pid < 0) {
@@ -608,19 +603,15 @@ void AurImpl::QueueCloneRequest(const CloneRequest& request,
   }
 
   sd_event_source* child;
-  sd_event_add_child(event_, &child, pid, WEXITED, &AurImpl::OnCloneExit,
-                     handler);
-
+  sd_event_add_child(event_, &child, pid, WEXITED, &AurImpl::OnCloneExit, handler);
   active_requests_.emplace(child);
 }
 
-void AurImpl::QueueRawRequest(const HttpRequest& request,
-                              const RawResponseCallback& callback) {
+void AurImpl::QueueRawRequest(const HttpRequest& request, const RawResponseCallback& callback) {
   QueueHttpRequest<RawResponseHandler>(request, callback);
 }
 
-void AurImpl::QueueRpcRequest(const RpcRequest& request,
-                              const RpcResponseCallback& callback) {
+void AurImpl::QueueRpcRequest(const RpcRequest& request, const RpcResponseCallback& callback) {
   QueueHttpRequest<RpcResponseHandler>(request, callback);
 }
 

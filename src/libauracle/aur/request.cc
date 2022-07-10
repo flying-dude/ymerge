@@ -83,6 +83,19 @@ RawRequest RawRequest::ForSourceFile(const Package& package,
                                  "?h=", UrlEscape(package.pkgbase)));
 }
 
+std::string RpcRequest::to_string() const {
+  std::stringstream ss;
+
+  bool first = true;
+  for (auto& q : args_) {
+    ss << (first ? "|| " : " ") << q.first << "::" << q.second;
+    first = false;
+  }
+  ss << " ||";
+
+  return ss.str();
+}
+
 std::vector<std::string> RawRequest::Build(std::string_view baseurl) const {
   return {absl::StrCat(baseurl, urlpath_)};
 }

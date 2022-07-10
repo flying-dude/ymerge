@@ -5,26 +5,28 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/core.h>
+
 #include "package.hh"
 
 namespace aur {
 
 // Abstract class describing a request for a resource.
-class Request {
- public:
+struct Request {
   virtual ~Request() = default;
-
   virtual std::vector<std::string> Build(std::string_view baseurl) const = 0;
+  virtual std::string to_string() const = 0; // for debugging
 };
 
-class HttpRequest : public Request {
- public:
+struct HttpRequest : Request {
   using QueryParam = std::pair<std::string, std::string>;
   using QueryParams = std::vector<QueryParam>;
 };
 
 // A class describing a GET request for an arbitrary URL on the AUR.
 class RawRequest : public HttpRequest {
+ private:
+  std::string urlpath_;
  public:
   static RawRequest ForSourceFile(const Package& package,
                                   std::string_view filename);
@@ -38,13 +40,13 @@ class RawRequest : public HttpRequest {
   RawRequest& operator=(RawRequest&&) = default;
 
   std::vector<std::string> Build(std::string_view baseurl) const override;
-
- private:
-  std::string urlpath_;
+  std::string to_string() const override { return urlpath_; }
 };
 
 // A class describing a url for a git repo hosted on the AUR.
 class CloneRequest : public Request {
+ private:
+  std::string reponame_;
  public:
   explicit CloneRequest(std::string reponame)
       : reponame_(std::move(reponame)) {}
@@ -58,16 +60,17 @@ class CloneRequest : public Request {
   const std::string& reponame() const { return reponame_; }
 
   std::vector<std::string> Build(std::string_view baseurl) const override;
-
- private:
-  std::string reponame_;
+  std::string to_string() const override { return reponame_; }
 };
 
 // A base class describing a GET request to the RPC endpoint of the AUR.
 class RpcRequest : public HttpRequest {
+ using size_type = std::string_view::size_type;
+ private:
+  std::string base_querystring_;
+  size_type approx_max_length_;
+  HttpRequest::QueryParams args_;
  public:
-  using size_type = std::string_view::size_type;
-
   // Upper limit on aur.archlinux.org seems to be somewhere around 8k.
   static constexpr size_type kMaxUriLength = 8000;
 
@@ -80,15 +83,10 @@ class RpcRequest : public HttpRequest {
   RpcRequest(RpcRequest&&) = default;
   RpcRequest& operator=(RpcRequest&&) = default;
 
-  std::vector<std::string> Build(std::string_view baseurl) const override;
-
   void AddArg(std::string_view key, std::string_view value);
 
- private:
-  std::string base_querystring_;
-  size_type approx_max_length_;
-
-  HttpRequest::QueryParams args_;
+  std::vector<std::string> Build(std::string_view baseurl) const override;
+  std::string to_string() const override;
 };
 
 class InfoRequest : public RpcRequest {
