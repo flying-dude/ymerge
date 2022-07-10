@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "auracle.hh"
 
+#include <fmt/format.h>
+
 #include <cerrno>
 #include <filesystem>
 #include <functional>
@@ -326,9 +328,11 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
   }
 
   for (const auto &[name, pkg, dependency_path] : total_ordering) {
+    std::optional<SyncDB> repo = pacman_->RepoForPackage(name);
+
     const bool satisfied = pacman_->DependencyIsSatisfied(name);
     const bool from_aur = pkg != nullptr;
-    const bool unknown = !from_aur && !pacman_->HasPackage(name);
+    const bool unknown = !from_aur && !repo;
     const bool is_target = absl::c_find(args, name) != args.end();
 
     if (unknown) {
@@ -353,8 +357,21 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
     } else {
       if (from_aur)
         std::cout << " " << pkg->pkgbase << "-" << pkg->version;
-      else
-        std::cout << " " << name;  // TODO print version for pacman packages as well
+      else {
+        std::optional<Pacman::Package> localPackage = pacman_->GetLocalPackage(name);
+        if (localPackage)
+          std::cout << fmt::format(" {}-{}", localPackage->pkgname, localPackage->pkgver);
+        else {
+          if (repo) {
+            std::optional<Pacman::Package> pkg = repo->get_package(name);
+            if (pkg)
+              std::cout << fmt::format(" {}-{}", pkg->pkgname, pkg->pkgver);
+            else
+              std::cout << " " << name << "-??? (found repo but package missing)";
+          } else
+            std::cout << " " << name << "-??? (could not find package repo)";
+        }
+      }
     }
 
     std::cout << "\n";

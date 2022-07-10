@@ -10,6 +10,8 @@
 
 namespace auracle {
 
+struct SyncDB;
+
 struct Pacman {
   struct Package {
     Package(std::string pkgname, std::string pkgver) : pkgname(std::move(pkgname)), pkgver(std::move(pkgver)) {}
@@ -31,16 +33,29 @@ struct Pacman {
 
   // Returns the name of the repo that the package belongs to, or std::nullopt
   // if the package was not found in any repo.
-  std::optional<std::string> RepoForPackage(const std::string &package) const;
-  bool HasPackage(const std::string &package) const { return RepoForPackage(package).has_value(); }
+  std::optional<SyncDB> RepoForPackage(const std::string &package) const;
+
+  // note: implementation cannot be put here directly, since SyncDB struct is forward-declared
+  bool HasPackage(const std::string &package) const;
 
   bool DependencyIsSatisfied(const std::string &package) const;
 
+  // local packages. note that local packages do not necessarily belong to a repo.
+  // you can just create a simple PKGBUILD file and install a package from that.
+  // no repo at all in that case.
   std::vector<Package> LocalPackages() const;
   std::optional<Package> GetLocalPackage(const std::string &name) const;
 
   alpm_handle_t *alpm_;
   alpm_db_t *local_db_;
+};
+
+// a binary package database operated by pacman
+struct SyncDB {
+  SyncDB(alpm_db_t *db_) : db(db_) {}
+  alpm_db_t *db;
+  std::string get_name() { return alpm_db_get_name(db); }
+  std::optional<Pacman::Package> get_package(std::string name);
 };
 
 }  // namespace auracle
