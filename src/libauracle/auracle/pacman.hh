@@ -16,7 +16,7 @@ struct Pacman {
   alpm::handle alpm_;
   alpm::db local_db_;
 
-  Pacman(const char *config_file = "/etc/pacman.conf");
+  Pacman(const char *config_file = "/etc/pacman.conf") : alpm_(config_file), local_db_(alpm_.get_localdb()) {}
 
   Pacman(const Pacman &) = delete;
   Pacman &operator=(const Pacman &) = delete;
