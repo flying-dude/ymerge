@@ -13,9 +13,12 @@
 namespace auracle {
 
 struct Pacman {
+  alpm::handle alpm_;
+  alpm::db local_db_;
+
   Pacman() : Pacman("/etc/pacman.conf") {}
   Pacman(const std::string &config_file);
-  ~Pacman() { alpm_release(alpm_); }
+  ~Pacman() {}
 
   Pacman(const Pacman &) = delete;
   Pacman &operator=(const Pacman &) = delete;
@@ -38,9 +41,6 @@ struct Pacman {
   // no repo at all in that case.
   std::vector<alpm::pkg> LocalPackages() const;
   std::optional<alpm::pkg> GetLocalPackage(const std::string &name) const;
-
-  alpm_handle_t *alpm_;
-  alpm::db local_db_;
 };
 
 }  // namespace auracle

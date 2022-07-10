@@ -26,4 +26,15 @@ struct db {
   operator alpm_db_t *() const { return db_; }
 };
 
+/// main context handle that represents an instance of libalpm
+struct handle {
+  alpm_handle_t *alpm_;
+  handle(const std::string &config_file);
+  ~handle() { alpm_release(alpm_); }
+  operator alpm_handle_t *() const { return alpm_; }
+
+  alpm::db register_syncdb(const char *treename, int level) { return alpm_register_syncdb(alpm_, treename, level); }
+  alpm::db get_localdb() { return alpm_get_localdb(alpm_); }
+};
+
 }  // namespace alpm
