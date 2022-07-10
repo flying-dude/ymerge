@@ -14,7 +14,7 @@ else()
     add_definitions(-DYMERGE_VERSION="UNKNOWN_VERSION")
 endif()
 
-#option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" ON)
 
 option(ENABLE_SANITIZERS "Enable runtime sanitizing (for development)")
 if (ENABLE_SANITIZERS)
@@ -34,7 +34,7 @@ pkg_check_modules(libsystemd REQUIRED IMPORTED_TARGET libsystemd)
 
 include(GNUInstallDirs)
 
-include_directories(src/auracle)
+include_directories(src/libauracle)
 include_directories(src/youtil)
 include_directories(src/ymerge)
 
@@ -48,7 +48,7 @@ add_library(youtil SHARED ${youtil_FILES})
 add_executable(auracle src/auracle/auracle_main.cc)
 target_link_libraries(auracle absl::container_common absl::strings libauracle)
 
-file(GLOB_RECURSE libauracle_FILES src/auracle/auracle/* src/auracle/aur/*)
+file(GLOB_RECURSE libauracle_FILES src/libauracle/*)
 add_library(libauracle SHARED ${libauracle_FILES})
 set_target_properties(libauracle PROPERTIES PREFIX "")
 target_link_libraries(libauracle
@@ -129,9 +129,9 @@ if (BUILD_TESTS)
     enable_testing()
 
     # Unit tests
-    file(GLOB libauracle_test_FILES src/auracle/auracle_test/* src/auracle/aur_test/*)
+    file(GLOB libauracle_test_FILES src/test/auracle_test/* src/test/aur_test/*)
     add_executable(libauracle_test ${libauracle_test_FILES})
-    target_include_directories(libauracle PUBLIC src/auracle/auracle src/auracle/aur)
+    target_include_directories(libauracle PUBLIC src/libauracle/auracle src/libauracle/aur)
     target_link_libraries(libauracle_test GTest::gtest_main GTest::gmock libauracle)
     gtest_discover_tests(libauracle_test)
 
