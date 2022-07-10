@@ -169,7 +169,7 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 // static
 int Pacman::Vercmp(const std::string &a, const std::string &b) { return alpm_pkg_vercmp(a.c_str(), b.c_str()); }
 
-std::optional<Pacman::Package> SyncDB::get_package(std::string name) {
+std::optional<Pacman::Package> SyncDB::find_satisfier(std::string name) {
   auto pkgcache = alpm_db_get_pkgcache(db);
   auto pkg = alpm_find_satisfier(pkgcache, name.c_str());
   if (pkg == nullptr) { return std::nullopt; }

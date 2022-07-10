@@ -55,7 +55,7 @@ struct SyncDB {
   SyncDB(alpm_db_t *db_) : db(db_) {}
   alpm_db_t *db;
   std::string get_name() { return alpm_db_get_name(db); }
-  std::optional<Pacman::Package> get_package(std::string name);
+  std::optional<Pacman::Package> find_satisfier(std::string name);
 };
 
 }  // namespace auracle

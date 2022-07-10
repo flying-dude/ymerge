@@ -363,7 +363,7 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
           std::cout << fmt::format(" {}-{}", localPackage->pkgname, localPackage->pkgver);
         else {
           if (repo) {
-            std::optional<Pacman::Package> pkg = repo->get_package(name);
+            std::optional<Pacman::Package> pkg = repo->find_satisfier(name);
             if (pkg)
               std::cout << fmt::format(" {}-{}", pkg->pkgname, pkg->pkgver);
             else
