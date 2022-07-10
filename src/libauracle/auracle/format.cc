@@ -118,7 +118,7 @@ void NameOnly(const aur::Package& package) {
 }
 
 void Short(const aur::Package& package,
-           const std::optional<auracle::Pacman::Package>& local_package) {
+           const std::optional<alpm::pkg>& local_package) {
   namespace t = terminal;
 
   const auto& l = local_package;
@@ -141,7 +141,7 @@ void Short(const aur::Package& package,
 }
 
 void Long(const aur::Package& package,
-          const std::optional<auracle::Pacman::Package>& local_package) {
+          const std::optional<alpm::pkg>& local_package) {
   namespace t = terminal;
 
   const auto& l = local_package;
@@ -194,7 +194,7 @@ void Long(const aur::Package& package,
   fmt::print("\n");
 }
 
-void Update(const auracle::Pacman::Package& from, const aur::Package& to) {
+void Update(const alpm::pkg& from, const aur::Package& to) {
   namespace t = terminal;
 
   fmt::print("{} {} -> {}\n", t::Bold(from.pkgname()), t::BoldRed(from.pkgver()),

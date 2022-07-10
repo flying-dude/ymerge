@@ -358,12 +358,12 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
       if (from_aur)
         std::cout << " " << pkg->pkgbase << "-" << pkg->version;
       else {
-        std::optional<Pacman::Package> localPackage = pacman_->GetLocalPackage(name);
+        std::optional<alpm::pkg> localPackage = pacman_->GetLocalPackage(name);
         if (localPackage)
           std::cout << fmt::format(" {}-{}", localPackage->pkgname(), localPackage->pkgver());
         else {
           if (repo) {
-            std::optional<Pacman::Package> pkg = repo->find_satisfier(name);
+            std::optional<alpm::pkg> pkg = repo->find_satisfier(name);
             if (pkg)
               std::cout << fmt::format(" {}-{}", pkg->pkgname(), pkg->pkgver());
             else

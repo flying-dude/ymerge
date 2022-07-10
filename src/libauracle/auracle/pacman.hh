@@ -8,18 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "alpm/alpm.hpp"
+
 namespace auracle {
 
 struct SyncDB;
 
 struct Pacman {
-  struct Package {
-    Package(alpm_pkg_t *pkg) : pkg(pkg) {}
-    alpm_pkg_t *pkg;
-    const char *pkgname() const { return alpm_pkg_get_name(pkg); }
-    const char *pkgver() const { return alpm_pkg_get_version(pkg); };
-  };
-
   Pacman() : Pacman("/etc/pacman.conf") {}
   Pacman(const std::string &config_file);
   ~Pacman() { alpm_release(alpm_); }
@@ -44,8 +39,8 @@ struct Pacman {
   // local packages. note that local packages do not necessarily belong to a repo.
   // you can just create a simple PKGBUILD file and install a package from that.
   // no repo at all in that case.
-  std::vector<Package> LocalPackages() const;
-  std::optional<Package> GetLocalPackage(const std::string &name) const;
+  std::vector<alpm::pkg> LocalPackages() const;
+  std::optional<alpm::pkg> GetLocalPackage(const std::string &name) const;
 
   alpm_handle_t *alpm_;
   alpm_db_t *local_db_;
@@ -56,7 +51,7 @@ struct SyncDB {
   SyncDB(alpm_db_t *db_) : db(db_) {}
   alpm_db_t *db;
   std::string get_name() { return alpm_db_get_name(db); }
-  std::optional<Pacman::Package> find_satisfier(std::string name);
+  std::optional<alpm::pkg> find_satisfier(std::string name);
 };
 
 }  // namespace auracle
