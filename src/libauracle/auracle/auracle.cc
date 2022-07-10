@@ -336,7 +336,8 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
     const bool is_target = absl::c_find(args, name) != args.end();
 
     if (unknown) {
-      std::cout << " [???] ";
+      std::cout << " [???] "
+                << "      ??? ::";
       r = -ENXIO;
     } else {
       if (from_aur)

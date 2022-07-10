@@ -84,7 +84,7 @@ class AurImpl : public Aur {
   ActiveRequests active_requests_;
 
   // optionally, use this to retain information about request source. for debugging.
-  absl::flat_hash_map<ActiveRequestTypes, std::string> active_request_to_request;
+  absl::flat_hash_map<ActiveRequestTypes, std::string> active_request_to_string;
 
   sigset_t saved_ss_{};
   sd_event* event_ = nullptr;
@@ -420,28 +420,34 @@ int AurImpl::CheckFinished() {
 }
 
 int AurImpl::Wait() {
-  static int p = 0;
   cancelled_ = false;
 
-  // loop could get stuck at last request
+  // note: the event loop sometimes gets stuck at the last active request.
   size_t requests = active_requests_.size();
+  static int timeout_counter = 0;
   while (!active_requests_.empty()) {
     if (sd_event_run(event_, 1) < 0) { return -EIO; }
 
-    // reset timer, if requests actually go down
+    // reset timer, if requests actually go down.
     if (active_requests_.size() < requests) {
       requests = active_requests_.size();
-      p = 0;
+      timeout_counter = 0;
     }
 
-    // to break the endless loop, abort after a timeout of 5 seconds
+    // remove obsolete elements from string representation
+    for (auto& pair : active_request_to_string)
+      if (!active_requests_.contains(pair.first)) active_requests_.erase(pair.first);
+
+    // abort after a timeout of 5 seconds. otherwise this could become an endless loop.
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    if (p++ * 50 > 5000)
-      throw std::runtime_error(
-          "reached timeout when trying to satisfy RPC requests. this is a bug in the event loop implementation that we "
-          "have.");
+    if (timeout_counter++ * 50 > 5000) {
+      for (auto& key : active_requests_)
+        std::cerr << "warning. timeout reached for request: " << active_request_to_string.at(key).c_str() << "\n";
+      goto exit;
+    }
   }
 
+exit:
   return cancelled_ ? -ECANCELED : 0;
 }
 
@@ -473,7 +479,7 @@ void AurImpl::QueueHttpRequest(const HttpRequest& request, const typename Respon
 
     curl_multi_add_handle(curl_multi_, curl);
     auto it = *active_requests_.emplace(curl).first;
-    active_request_to_request.emplace(it, request.to_string());
+    active_request_to_string.emplace(it, request.to_string());
   }
 }
 

@@ -14,7 +14,7 @@ else()
     add_definitions(-DYMERGE_VERSION="UNKNOWN_VERSION")
 endif()
 
-option(BUILD_TESTS "Build tests" ON)
+#option(BUILD_TESTS "Build tests" ON)
 
 option(ENABLE_SANITIZERS "Enable runtime sanitizing (for development)")
 if (ENABLE_SANITIZERS)
