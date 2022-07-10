@@ -14,6 +14,7 @@
 #include <variant>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/strings/strip.h"
@@ -42,7 +43,8 @@ class AurImpl : public Aur {
   int Wait() override;
 
  private:
-  using ActiveRequests = absl::flat_hash_set<std::variant<CURL*, sd_event_source*>>;
+  using ActiveRequestTypes = std::variant<CURL*, sd_event_source*>;
+  using ActiveRequests = absl::flat_hash_set<ActiveRequestTypes>;
 
   template <typename ResponseHandlerType>
   void QueueHttpRequest(const HttpRequest& request, const typename ResponseHandlerType::CallbackType& callback);
@@ -80,6 +82,9 @@ class AurImpl : public Aur {
 
   CURLM* curl_multi_;
   ActiveRequests active_requests_;
+
+  // optionally, use this to retain information about request source. for debugging.
+  absl::flat_hash_map<ActiveRequestTypes, std::string> active_request_to_request;
 
   sigset_t saved_ss_{};
   sd_event* event_ = nullptr;
@@ -467,7 +472,8 @@ void AurImpl::QueueHttpRequest(const HttpRequest& request, const typename Respon
     }
 
     curl_multi_add_handle(curl_multi_, curl);
-    active_requests_.emplace(curl);
+    auto it = *active_requests_.emplace(curl).first;
+    active_request_to_request.emplace(it, request.to_string());
   }
 }
 
