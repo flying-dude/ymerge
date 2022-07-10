@@ -6,18 +6,17 @@
 #include <systemd/sd-event.h>
 #include <unistd.h>
 
+#include <chrono>  // for polling the Wait() function
 #include <filesystem>
 #include <fstream>
 #include <string_view>
+#include <thread>  // for polling the Wait() function
 #include <variant>
 #include <vector>
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/strings/strip.h"
-
-#include <chrono> // for polling the Wait() function
-#include <thread> // for polling the Wait() function
 
 namespace fs = std::filesystem;
 
@@ -34,14 +33,9 @@ class AurImpl : public Aur {
   AurImpl(AurImpl&&) = default;
   AurImpl& operator=(AurImpl&&) = default;
 
-  void QueueRpcRequest(const RpcRequest& request,
-                       const RpcResponseCallback& callback) override;
-
-  void QueueRawRequest(const HttpRequest& request,
-                       const RawResponseCallback& callback) override;
-
-  void QueueCloneRequest(const CloneRequest& request,
-                         const CloneResponseCallback& callback) override;
+  void QueueRpcRequest(const RpcRequest& request, const RpcResponseCallback& callback) override;
+  void QueueRawRequest(const HttpRequest& request, const RawResponseCallback& callback) override;
+  void QueueCloneRequest(const CloneRequest& request, const CloneResponseCallback& callback) override;
 
   // Wait for all pending requests to complete. Returns non-zero if any request
   // failed or was cancelled by a callback.
@@ -51,9 +45,7 @@ class AurImpl : public Aur {
   using ActiveRequests = absl::flat_hash_set<std::variant<CURL*, sd_event_source*>>;
 
   template <typename ResponseHandlerType>
-  void QueueHttpRequest(
-      const HttpRequest& request,
-      const typename ResponseHandlerType::CallbackType& callback);
+  void QueueHttpRequest(const HttpRequest& request, const typename ResponseHandlerType::CallbackType& callback);
 
   int FinishRequest(CURL* curl, CURLcode result, bool dispatch_callback);
   int FinishRequest(sd_event_source* source);
@@ -73,18 +65,15 @@ class AurImpl : public Aur {
     REQUESTS,
   };
 
-  static int SocketCallback(CURLM* curl, curl_socket_t s, int action,
-                            void* userdata, void* socketptr);
+  static int SocketCallback(CURLM* curl, curl_socket_t s, int action, void* userdata, void* socketptr);
   int DispatchSocketCallback(curl_socket_t s, int action, sd_event_source* io);
 
   static int TimerCallback(CURLM* curl, long timeout_ms, void* userdata);
   int DispatchTimerCallback(long timeout_ms);
 
-  static int OnCurlIO(sd_event_source* s, int fd, uint32_t revents,
-                      void* userdata);
+  static int OnCurlIO(sd_event_source* s, int fd, uint32_t revents, void* userdata);
   static int OnCurlTimer(sd_event_source* s, uint64_t usec, void* userdata);
-  static int OnCloneExit(sd_event_source* s, const siginfo_t* si,
-                         void* userdata);
+  static int OnCloneExit(sd_event_source* s, const siginfo_t* si, void* userdata);
   static int OnCancel(sd_event_source* s, void* userdata);
 
   Options options_;
@@ -115,15 +104,12 @@ absl::Status StatusFromCurlHandle(CURL* curl) {
   // Most statuses don't need to be specially handled, but some should be
   // classified and/or given a more descriptive message.
   switch (http_status) {
-    case 200:
-      return absl::OkStatus();
+    case 200: return absl::OkStatus();
     case 404:
       // Raw requests might result in 404s. Let clients distinguish between this
       // error and others.
       return absl::NotFoundError("Not Found");
-    case 429:
-      return absl::ResourceExhaustedError(
-          "Too many requests: the AUR has throttled your IP for today");
+    case 429: return absl::ResourceExhaustedError("Too many requests: the AUR has throttled your IP for today");
   }
 
   return absl::InternalError(absl::StrCat("HTTP ", http_status));
@@ -140,21 +126,17 @@ class ResponseHandler {
   ResponseHandler(ResponseHandler&&) = default;
   ResponseHandler& operator=(ResponseHandler&&) = default;
 
-  static size_t BodyCallback(char* ptr, size_t size, size_t nmemb,
-                             void* userdata) {
+  static size_t BodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
     auto* handler = static_cast<ResponseHandler*>(userdata);
 
     handler->body.append(ptr, size * nmemb);
     return size * nmemb;
   }
 
-  static int DebugCallback(CURL*, curl_infotype type, char* data, size_t size,
-                           void* userdata) {
+  static int DebugCallback(CURL*, curl_infotype type, char* data, size_t size, void* userdata) {
     auto* stream = static_cast<std::ofstream*>(userdata);
 
-    if (type != CURLINFO_HEADER_OUT) {
-      return 0;
-    }
+    if (type != CURLINFO_HEADER_OUT) { return 0; }
 
     stream->write(data, size);
     return 0;
@@ -188,9 +170,7 @@ class TypedResponseHandler : public ResponseHandler {
  protected:
   virtual ResponseT MakeResponse() { return ResponseT(std::move(body)); }
 
-  int Run(absl::Status status) override {
-    return callback_(ResponseWrapper(MakeResponse(), status));
-  }
+  int Run(absl::Status status) override { return callback_(ResponseWrapper(MakeResponse(), status)); }
 
  private:
   const CallbackType callback_;
@@ -217,15 +197,11 @@ using RawResponseHandler = TypedResponseHandler<RawResponse>;
 
 class CloneResponseHandler : public TypedResponseHandler<CloneResponse> {
  public:
-  CloneResponseHandler(AurImpl* aur, Aur::CloneResponseCallback callback,
-                       std::string operation)
-      : TypedResponseHandler(aur, std::move(callback)),
-        operation_(std::move(operation)) {}
+  CloneResponseHandler(AurImpl* aur, Aur::CloneResponseCallback callback, std::string operation)
+      : TypedResponseHandler(aur, std::move(callback)), operation_(std::move(operation)) {}
 
  protected:
-  CloneResponse MakeResponse() override {
-    return CloneResponse(std::move(operation_));
-  }
+  CloneResponse MakeResponse() override { return CloneResponse(std::move(operation_)); }
 
  private:
   std::string operation_;
@@ -240,12 +216,10 @@ AurImpl::AurImpl(Options options) : options_(std::move(options)) {
   curl_multi_setopt(curl_multi_, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
   curl_multi_setopt(curl_multi_, CURLMOPT_MAX_TOTAL_CONNECTIONS, 5L);
 
-  curl_multi_setopt(curl_multi_, CURLMOPT_SOCKETFUNCTION,
-                    &AurImpl::SocketCallback);
+  curl_multi_setopt(curl_multi_, CURLMOPT_SOCKETFUNCTION, &AurImpl::SocketCallback);
   curl_multi_setopt(curl_multi_, CURLMOPT_SOCKETDATA, this);
 
-  curl_multi_setopt(curl_multi_, CURLMOPT_TIMERFUNCTION,
-                    &AurImpl::TimerCallback);
+  curl_multi_setopt(curl_multi_, CURLMOPT_TIMERFUNCTION, &AurImpl::TimerCallback);
   curl_multi_setopt(curl_multi_, CURLMOPT_TIMERDATA, this);
 
   sigset_t ss{};
@@ -272,9 +246,7 @@ AurImpl::~AurImpl() {
 
   sigprocmask(SIG_SETMASK, &saved_ss_, nullptr);
 
-  if (debug_stream_.is_open()) {
-    debug_stream_.close();
-  }
+  if (debug_stream_.is_open()) { debug_stream_.close(); }
 }
 
 void AurImpl::Cancel(const ActiveRequests::value_type& request) {
@@ -297,9 +269,7 @@ void AurImpl::Cancel(const ActiveRequests::value_type& request) {
 int AurImpl::OnCancel(sd_event_source*, void* userdata) {
   auto* aur = static_cast<AurImpl*>(userdata);
 
-  while (!aur->active_requests_.empty()) {
-    aur->Cancel(*aur->active_requests_.begin());
-  }
+  while (!aur->active_requests_.empty()) { aur->Cancel(*aur->active_requests_.begin()); }
 
   aur->cancelled_ = true;
 
@@ -313,15 +283,13 @@ void AurImpl::CancelAll() {
 }
 
 // static
-int AurImpl::SocketCallback(CURLM*, curl_socket_t s, int action, void* userdata,
-                            void* sockptr) {
+int AurImpl::SocketCallback(CURLM*, curl_socket_t s, int action, void* userdata, void* sockptr) {
   auto* aur = static_cast<AurImpl*>(userdata);
   auto* io = static_cast<sd_event_source*>(sockptr);
   return aur->DispatchSocketCallback(s, action, io);
 }
 
-int AurImpl::DispatchSocketCallback(curl_socket_t s, int action,
-                                    sd_event_source* io) {
+int AurImpl::DispatchSocketCallback(curl_socket_t s, int action, sd_event_source* io) {
   if (action == CURL_POLL_REMOVE) {
     sd_event_source_unref(io);
     return CheckFinished();
@@ -329,41 +297,28 @@ int AurImpl::DispatchSocketCallback(curl_socket_t s, int action,
 
   auto events = [action]() -> std::uint32_t {
     switch (action) {
-      case CURL_POLL_IN:
-        return EPOLLIN;
-      case CURL_POLL_OUT:
-        return EPOLLOUT;
-      case CURL_POLL_INOUT:
-        return EPOLLIN | EPOLLOUT;
-      default:
-        return 0;
+      case CURL_POLL_IN: return EPOLLIN;
+      case CURL_POLL_OUT: return EPOLLOUT;
+      case CURL_POLL_INOUT: return EPOLLIN | EPOLLOUT;
+      default: return 0;
     }
   }();
 
   if (io != nullptr) {
-    if (sd_event_source_set_io_events(io, events) < 0) {
-      return -1;
-    }
+    if (sd_event_source_set_io_events(io, events) < 0) { return -1; }
 
-    if (sd_event_source_set_enabled(io, SD_EVENT_ON) < 0) {
-      return -1;
-    }
+    if (sd_event_source_set_enabled(io, SD_EVENT_ON) < 0) { return -1; }
   } else {
-    if (sd_event_add_io(event_, &io, s, events, &AurImpl::OnCurlIO, this) < 0) {
-      return -1;
-    }
+    if (sd_event_add_io(event_, &io, s, events, &AurImpl::OnCurlIO, this) < 0) { return -1; }
 
-    if (curl_multi_assign(curl_multi_, s, io) != CURLM_OK) {
-      return -1;
-    }
+    if (curl_multi_assign(curl_multi_, s, io) != CURLM_OK) { return -1; }
   }
 
   return 0;
 }
 
 // static
-int AurImpl::OnCurlIO(sd_event_source*, int fd, uint32_t revents,
-                      void* userdata) {
+int AurImpl::OnCurlIO(sd_event_source*, int fd, uint32_t revents, void* userdata) {
   auto* aur = static_cast<AurImpl*>(userdata);
 
   int action;
@@ -378,10 +333,7 @@ int AurImpl::OnCurlIO(sd_event_source*, int fd, uint32_t revents,
   }
 
   int unused;
-  if (curl_multi_socket_action(aur->curl_multi_, fd, action, &unused) !=
-      CURLM_OK) {
-    return -EINVAL;
-  }
+  if (curl_multi_socket_action(aur->curl_multi_, fd, action, &unused) != CURLM_OK) { return -EINVAL; }
 
   return aur->CheckFinished();
 }
@@ -391,10 +343,7 @@ int AurImpl::OnCurlTimer(sd_event_source*, uint64_t, void* userdata) {
   auto* aur = static_cast<AurImpl*>(userdata);
 
   int unused;
-  if (curl_multi_socket_action(aur->curl_multi_, CURL_SOCKET_TIMEOUT, 0,
-                               &unused) != CURLM_OK) {
-    return -EINVAL;
-  }
+  if (curl_multi_socket_action(aur->curl_multi_, CURL_SOCKET_TIMEOUT, 0, &unused) != CURLM_OK) { return -EINVAL; }
 
   return aur->CheckFinished();
 }
@@ -407,44 +356,32 @@ int AurImpl::TimerCallback(CURLM*, long timeout_ms, void* userdata) {
 
 int AurImpl::DispatchTimerCallback(long timeout_ms) {
   if (timeout_ms < 0) {
-    if (sd_event_source_set_enabled(timer_, SD_EVENT_OFF) < 0) {
-      return -1;
-    }
+    if (sd_event_source_set_enabled(timer_, SD_EVENT_OFF) < 0) { return -1; }
 
     return 0;
   }
 
-  uint64_t usec =
-      absl::ToUnixMicros(absl::Now() + absl::Milliseconds(timeout_ms));
+  uint64_t usec = absl::ToUnixMicros(absl::Now() + absl::Milliseconds(timeout_ms));
 
   if (timer_ != nullptr) {
-    if (sd_event_source_set_time(timer_, usec) < 0) {
-      return -1;
-    }
+    if (sd_event_source_set_time(timer_, usec) < 0) { return -1; }
 
-    if (sd_event_source_set_enabled(timer_, SD_EVENT_ONESHOT) < 0) {
-      return -1;
-    }
+    if (sd_event_source_set_enabled(timer_, SD_EVENT_ONESHOT) < 0) { return -1; }
   } else {
-    if (sd_event_add_time(event_, &timer_, CLOCK_REALTIME, usec, 0,
-                          &AurImpl::OnCurlTimer, this) < 0) {
-      return -1;
-    }
+    if (sd_event_add_time(event_, &timer_, CLOCK_REALTIME, usec, 0, &AurImpl::OnCurlTimer, this) < 0) { return -1; }
   }
 
   return 0;
 }
 
-int AurImpl::FinishRequest(CURL* curl, CURLcode result,
-                           bool dispatch_callback) {
+int AurImpl::FinishRequest(CURL* curl, CURLcode result, bool dispatch_callback) {
   ResponseHandler* handler;
   curl_easy_getinfo(curl, CURLINFO_PRIVATE, &handler);
 
   int r = 0;
   if (dispatch_callback) {
     absl::Status status =
-        result == CURLE_OK ? StatusFromCurlHandle(curl)
-                           : absl::UnknownError(handler->error_buffer.data());
+        result == CURLE_OK ? StatusFromCurlHandle(curl) : absl::UnknownError(handler->error_buffer.data());
 
     r = handler->RunCallback(std::move(status));
   } else {
@@ -468,15 +405,11 @@ int AurImpl::CheckFinished() {
   int unused;
 
   auto* msg = curl_multi_info_read(curl_multi_, &unused);
-  if (msg == nullptr || msg->msg != CURLMSG_DONE) {
-    return 0;
-  }
+  if (msg == nullptr || msg->msg != CURLMSG_DONE) { return 0; }
 
   auto r = FinishRequest(msg->easy_handle, msg->data.result,
                          /* dispatch_callback = */ true);
-  if (r < 0) {
-    CancelAll();
-  }
+  if (r < 0) { CancelAll(); }
 
   return r;
 }
@@ -488,9 +421,7 @@ int AurImpl::Wait() {
   // loop could get stuck at last request
   size_t requests = active_requests_.size();
   while (!active_requests_.empty()) {
-    if (sd_event_run(event_, 1) < 0) {
-      return -EIO;
-    }
+    if (sd_event_run(event_, 1) < 0) { return -EIO; }
 
     // reset timer, if requests actually go down
     if (active_requests_.size() < requests) {
@@ -500,17 +431,17 @@ int AurImpl::Wait() {
 
     // to break the endless loop, abort after a timeout of 5 seconds
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    if(p++ * 50 > 5000)
-      throw std::runtime_error("reached timeout when trying to satisfy RPC requests. this is a bug in the event loop implementation that we have.");
+    if (p++ * 50 > 5000)
+      throw std::runtime_error(
+          "reached timeout when trying to satisfy RPC requests. this is a bug in the event loop implementation that we "
+          "have.");
   }
 
   return cancelled_ ? -ECANCELED : 0;
 }
 
 template <typename ResponseHandlerType>
-void AurImpl::QueueHttpRequest(
-    const HttpRequest& request,
-    const typename ResponseHandlerType::CallbackType& callback) {
+void AurImpl::QueueHttpRequest(const HttpRequest& request, const typename ResponseHandlerType::CallbackType& callback) {
   for (const auto& r : request.Build(options_.baseurl)) {
     auto* curl = curl_easy_init();
     auto* handler = new ResponseHandlerType(this, callback);
@@ -527,15 +458,12 @@ void AurImpl::QueueHttpRequest(
     curl_easy_setopt(curl, CURLOPT_USERAGENT, options_.useragent.c_str());
 
     switch (debug_level_) {
-      case DebugLevel::NONE:
-        break;
+      case DebugLevel::NONE: break;
       case DebugLevel::REQUESTS:
         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, &RH::DebugCallback);
         curl_easy_setopt(curl, CURLOPT_DEBUGDATA, &debug_stream_);
         [[fallthrough]];
-      case DebugLevel::VERBOSE_STDERR:
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        break;
+      case DebugLevel::VERBOSE_STDERR: curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); break;
     }
 
     curl_multi_add_handle(curl_multi_, curl);
@@ -544,15 +472,13 @@ void AurImpl::QueueHttpRequest(
 }
 
 // static
-int AurImpl::OnCloneExit(sd_event_source* source, const siginfo_t* si,
-                         void* userdata) {
+int AurImpl::OnCloneExit(sd_event_source* source, const siginfo_t* si, void* userdata) {
   auto* handler = static_cast<CloneResponseHandler*>(userdata);
   handler->aur()->FinishRequest(source);
 
   absl::Status status;
   if (si->si_status != 0) {
-    status = absl::InternalError(
-        absl::StrCat("git exited with unexpected exit status ", si->si_status));
+    status = absl::InternalError(absl::StrCat("git exited with unexpected exit status ", si->si_status));
   }
 
   return handler->RunCallback(std::move(status));
@@ -564,8 +490,7 @@ void AurImpl::QueueCloneRequest(const CloneRequest& request, const CloneResponse
 
   int pid = fork();
   if (pid < 0) {
-    handler->RunCallback(absl::InternalError(
-        absl::StrCat("failed to fork new process for git: ", strerror(errno))));
+    handler->RunCallback(absl::InternalError(absl::StrCat("failed to fork new process for git: ", strerror(errno))));
     return;
   }
 
@@ -615,9 +540,7 @@ void AurImpl::QueueRpcRequest(const RpcRequest& request, const RpcResponseCallba
   QueueHttpRequest<RpcResponseHandler>(request, callback);
 }
 
-std::unique_ptr<Aur> NewAur(Aur::Options options) {
-  return std::make_unique<AurImpl>(std::move(options));
-}
+std::unique_ptr<Aur> NewAur(Aur::Options options) { return std::make_unique<AurImpl>(std::move(options)); }
 
 }  // namespace aur
 

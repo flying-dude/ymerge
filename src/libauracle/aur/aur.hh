@@ -57,17 +57,14 @@ class Aur {
 
   // Asynchronously issue an RPC request. The callback will be invoked when the
   // call completes.
-  virtual void QueueRpcRequest(const RpcRequest& request,
-                               const RpcResponseCallback& callback) = 0;
+  virtual void QueueRpcRequest(const RpcRequest& request, const RpcResponseCallback& callback) = 0;
 
   // Asynchronously issue a raw request. The callback will be invoked when the
   // call completes.
-  virtual void QueueRawRequest(const HttpRequest& request,
-                               const RawResponseCallback& callback) = 0;
+  virtual void QueueRawRequest(const HttpRequest& request, const RawResponseCallback& callback) = 0;
 
   // Clone a git repository.
-  virtual void QueueCloneRequest(const CloneRequest& request,
-                                 const CloneResponseCallback& callback) = 0;
+  virtual void QueueCloneRequest(const CloneRequest& request, const CloneResponseCallback& callback) = 0;
 
   // Wait for all pending requests to complete. Returns non-zero if any request
   // failed or was cancelled by a callback.
