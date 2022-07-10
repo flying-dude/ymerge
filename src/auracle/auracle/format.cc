@@ -129,10 +129,10 @@ void Short(const aur::Package& package,
   std::string installed_package;
   if (l) {
     const auto local_ver_color =
-        auracle::Pacman::Vercmp(l->pkgver, p.version) < 0 ? &t::BoldRed
+        auracle::Pacman::Vercmp(l->pkgver(), p.version) < 0 ? &t::BoldRed
                                                           : &t::BoldGreen;
     installed_package =
-        fmt::format("[installed: {}]", local_ver_color(l->pkgver));
+        fmt::format("[installed: {}]", local_ver_color(l->pkgver()));
   }
 
   fmt::print("{}{} {} ({}, {}) {}\n    {}\n", t::BoldMagenta("aur/"),
@@ -153,10 +153,10 @@ void Long(const aur::Package& package,
   std::string installed_package;
   if (l) {
     const auto local_ver_color =
-        auracle::Pacman::Vercmp(l->pkgver, p.version) < 0 ? &t::BoldRed
+        auracle::Pacman::Vercmp(l->pkgver(), p.version) < 0 ? &t::BoldRed
                                                           : &t::BoldGreen;
     installed_package =
-        fmt::format(" [installed: {}]", local_ver_color(l->pkgver));
+        fmt::format(" [installed: {}]", local_ver_color(l->pkgver()));
   }
 
   fmt::print("{}", Field("Repository", t::BoldMagenta("aur")));
@@ -197,7 +197,7 @@ void Long(const aur::Package& package,
 void Update(const auracle::Pacman::Package& from, const aur::Package& to) {
   namespace t = terminal;
 
-  fmt::print("{} {} -> {}\n", t::Bold(from.pkgname), t::BoldRed(from.pkgver),
+  fmt::print("{} {} -> {}\n", t::Bold(from.pkgname()), t::BoldRed(from.pkgver()),
              t::BoldGreen(to.version));
 }
 

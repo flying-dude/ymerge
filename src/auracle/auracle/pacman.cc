@@ -152,7 +152,7 @@ std::optional<Pacman::Package> Pacman::GetLocalPackage(const std::string &name) 
   alpm_pkg_t *pkg = alpm_db_get_pkg(local_db_, name.c_str());
   if (pkg == nullptr) { return std::nullopt; }
 
-  return Package{alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)};
+  return Package{pkg};
 }
 
 std::vector<Pacman::Package> Pacman::LocalPackages() const {
@@ -160,7 +160,7 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 
   for (auto i = alpm_db_get_pkgcache(local_db_); i != nullptr; i = i->next) {
     const auto pkg = static_cast<alpm_pkg_t *>(i->data);
-    packages.emplace_back(alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg));
+    packages.emplace_back(pkg);
   }
 
   return packages;
@@ -170,10 +170,10 @@ std::vector<Pacman::Package> Pacman::LocalPackages() const {
 int Pacman::Vercmp(const std::string &a, const std::string &b) { return alpm_pkg_vercmp(a.c_str(), b.c_str()); }
 
 std::optional<Pacman::Package> SyncDB::find_satisfier(std::string name) {
-  auto pkgcache = alpm_db_get_pkgcache(db);
-  auto pkg = alpm_find_satisfier(pkgcache, name.c_str());
+  alpm_list_t *pkgcache = alpm_db_get_pkgcache(db);
+  alpm_pkg_t *pkg = alpm_find_satisfier(pkgcache, name.c_str());
   if (pkg == nullptr) { return std::nullopt; }
-  return Pacman::Package{alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)};
+  return Pacman::Package{pkg};
 }
 
 }  // namespace auracle

@@ -14,9 +14,10 @@ struct SyncDB;
 
 struct Pacman {
   struct Package {
-    Package(std::string pkgname, std::string pkgver) : pkgname(std::move(pkgname)), pkgver(std::move(pkgver)) {}
-    std::string pkgname;
-    std::string pkgver;
+    Package(alpm_pkg_t *pkg) : pkg(pkg) {}
+    alpm_pkg_t *pkg;
+    const char *pkgname() const { return alpm_pkg_get_name(pkg); }
+    const char *pkgver() const { return alpm_pkg_get_version(pkg); };
   };
 
   Pacman() : Pacman("/etc/pacman.conf") {}

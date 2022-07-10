@@ -360,12 +360,12 @@ int Auracle::BuildOrder(const std::vector<std::string> &args, const CommandOptio
       else {
         std::optional<Pacman::Package> localPackage = pacman_->GetLocalPackage(name);
         if (localPackage)
-          std::cout << fmt::format(" {}-{}", localPackage->pkgname, localPackage->pkgver);
+          std::cout << fmt::format(" {}-{}", localPackage->pkgname(), localPackage->pkgver());
         else {
           if (repo) {
             std::optional<Pacman::Package> pkg = repo->find_satisfier(name);
             if (pkg)
-              std::cout << fmt::format(" {}-{}", pkg->pkgname, pkg->pkgver);
+              std::cout << fmt::format(" {}-{}", pkg->pkgname(), pkg->pkgver());
             else
               std::cout << " " << name << "-??? (found repo but package missing)";
           } else
@@ -417,7 +417,7 @@ int Auracle::GetOutdatedPackages(const std::vector<std::string> &args, std::vect
 
   auto local_pkgs = pacman_->LocalPackages();
   for (const auto &pkg : local_pkgs) {
-    if (args.empty() || absl::c_find(args, pkg.pkgname) != args.end()) { info_request.AddArg(pkg.pkgname); }
+    if (args.empty() || absl::c_find(args, pkg.pkgname()) != args.end()) { info_request.AddArg(pkg.pkgname()); }
   }
 
   aur_->QueueRpcRequest(info_request, [&](aur::ResponseWrapper<aur::RpcResponse> response) {
@@ -428,7 +428,7 @@ int Auracle::GetOutdatedPackages(const std::vector<std::string> &args, std::vect
                  std::back_inserter(*packages), [&](const aur::Package &p) {
                    auto local = pacman_->GetLocalPackage(p.name);
 
-                   return local && Pacman::Vercmp(p.version, local->pkgver) > 0;
+                   return local && Pacman::Vercmp(p.version, local->pkgver()) > 0;
                  });
 
     return 0;
