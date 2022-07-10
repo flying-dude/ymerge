@@ -108,7 +108,7 @@ bool ParseOneFile(const std::string &path, ParseState *state) {
 
 namespace alpm {
 
-handle::handle(const std::string &config_file) {
+handle::handle(const char *config_file) {
   ParseState state;
   if (!ParseOneFile(config_file, &state))
     throw std::runtime_error(fmt::format("failed to parse config file: {}", config_file));

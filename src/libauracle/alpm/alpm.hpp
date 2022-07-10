@@ -29,8 +29,8 @@ struct db {
 /// main context handle that represents an instance of libalpm
 struct handle {
   alpm_handle_t *alpm_;
-  handle(const std::string &config_file);
-  ~handle() { alpm_release(alpm_); }
+  handle(const char *config_file = "/etc/pacman.conf");
+  virtual ~handle() { alpm_release(alpm_); }
   operator alpm_handle_t *() const { return alpm_; }
 
   alpm::db register_syncdb(const char *treename, int level) { return alpm_register_syncdb(alpm_, treename, level); }

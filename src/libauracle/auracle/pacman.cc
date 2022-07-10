@@ -9,9 +9,7 @@
 
 namespace auracle {
 
-Pacman::Pacman(const std::string &config_file) : alpm_(config_file.c_str()) {
-  this->local_db_ = alpm_.get_localdb();
-}
+Pacman::Pacman(const char *config_file) : alpm_(config_file) { this->local_db_ = alpm_.get_localdb(); }
 
 std::optional<alpm::db> Pacman::RepoForPackage(const std::string &package) const {
   for (auto i = alpm_get_syncdbs(alpm_); i != nullptr; i = i->next) {
