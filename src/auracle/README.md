@@ -1,6 +1,8 @@
 Using the C++ code from the discontinued [Auracle](https://github.com/falconindy/auracle) project.
 User [sandsmark](https://github.com/sandsmark/auracle) has ported the original auracle project to the cmake build system.
 
+See Reddit announcement [here](https://www.reddit.com/r/archlinux/comments/vtoomp/picking_up_development_of_the_discontinued/).
+
 ## What is Auracle?
 
 Auracle is a command line tool used to interact with Arch Linux's User
@@ -60,3 +62,38 @@ And running the tests is simply a matter of:
 ```sh
 $ ninja test
 ```
+
+### Usage
+
+```
+$ auracle --help
+auracle [options] command
+
+Query the AUR or clone packages.
+
+  -h, --help               Show this help
+      --version            Show software version
+
+  -q, --quiet              Output less, when possible
+  -r, --recurse            Recurse dependencies when cloning
+      --literal            Disallow regex in searches
+      --searchby=BY        Change search-by dimension
+      --color=WHEN         One of 'auto', 'never', or 'always'
+      --sort=KEY           Sort results in ascending order by KEY
+      --rsort=KEY          Sort results in descending order by KEY
+      --resolve-deps=DEPS  Include/exclude dependency types in recursive operations
+      --show-file=FILE     File to dump with 'show' command
+  -C DIR, --chdir=DIR      Change directory to DIR before cloning
+  -F FMT, --format=FMT     Specify custom output for search and info
+
+Commands:
+  buildorder               Show build order
+  clone                    Clone or update git repos for packages
+  info                     Show detailed information
+  outdated                 Check for updates for foreign packages
+  rawinfo                  Dump unformatted JSON for info query
+  rawsearch                Dump unformatted JSON for search query
+  search                   Search for packages
+  show                     Dump package source file
+  update                   Clone out of date foreign packages
+  ``` 

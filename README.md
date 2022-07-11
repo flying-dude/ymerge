@@ -1,3 +1,5 @@
+**[Docs](docs/README.md) - [Packages](https://github.com/flying-dude/curated-aur)**
+
 # ymerge
 
 A Source-Based Package Manager for Arch Linux.
