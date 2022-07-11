@@ -21,7 +21,7 @@ std::optional<alpm::db> Pacman::RepoForPackage(const std::string &package) const
 }
 
 bool Pacman::DependencyIsSatisfied(const std::string &package) const {
-  auto *cache = alpm_db_get_pkgcache(local_db_);
+  alpm::list cache = local_db_.get_pkgcache();
   return alpm_find_satisfier(cache, package.c_str()) != nullptr;
 }
 
@@ -35,7 +35,7 @@ std::optional<alpm::pkg> Pacman::GetLocalPackage(const std::string &name) const 
 std::vector<alpm::pkg> Pacman::LocalPackages() const {
   std::vector<alpm::pkg> packages;
 
-  for (auto i = alpm_db_get_pkgcache(local_db_); i != nullptr; i = i->next) {
+  for (alpm_list_t *i = local_db_.get_pkgcache(); i != nullptr; i = i->next) {
     const auto pkg = static_cast<alpm_pkg_t *>(i->data);
     packages.emplace_back(pkg);
   }
