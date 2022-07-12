@@ -74,6 +74,8 @@ xresult<void> pkgbuild_raw::init_build_dir() {
 }
 
 xresult<void> pkgbuild::init_srcinfo() {
+  if (info_.has_value()) return {};
+
   auto file = *build_dir / ".SRCINFO";
   if (!exists(file)) {
     cmd_options opt;

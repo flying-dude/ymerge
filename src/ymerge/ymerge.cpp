@@ -84,6 +84,10 @@ json whitelist;
 using namespace auracle;
 using namespace fly;
 
+xresult<bool> ask(std::string question);
+void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
+                        bool &missing_pkg_error);
+
 int main_throws(int argc, const char **argv);
 int main(int argc, const char **argv) {
   try {
@@ -182,27 +186,16 @@ int main_throws(int argc, const char **argv) {
     fmt::print("Package dir \"{}\" not present.\n", pkg_dir.c_str());
     fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
 
-    cout << "Do you want me to perform \"ymerge --sync\" right now? [Y/n] ";
-
-    string answer = "Y";
-    if (flag::confirm) { cin >> answer; }
-
-    if (answer.length() == 0) {
-      error("Received empty answer.");
+    xresult<bool> answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
+    if (auto err = answer.error()) {
+      error("{}", *err);
       return 1;
     }
-
-    char c = tolower(answer.at(0));
 
     // exit program if they don't want to sync. should we return 0 or 1 here tho?
-    if (c == 'n') return 0;
+    if (*answer == false) return 0;
 
-    if (c != 'y') {
-      error("Could not understand answer \"{}\"", answer);
-      return 1;
-    }
-
-    // c == 'y'
+    // answer == yes
     if (auto err = ymerge::sync()) {
       error("{}", *err);
       return 1;
@@ -227,12 +220,27 @@ int main_throws(int argc, const char **argv) {
       error("{}", *err);
       missing_pkg_error = true;
     } else {
-      recipes.push_back(*recipe);
+      add_recipe_to_list(recipes, *recipe, pacman, missing_pkg_error);
     }
   }
 
   if (missing_pkg_error) return 1;
 
+  // TODO use shell colors to distinguish packages selected by the users from packages that are just dependencies
+  std::cout << "About to compile and install the following package recipes:";
+  for (auto it = recipes.begin(); it != recipes.end(); it++) { std::cout << " " << it->get()->full_name(); }
+  std::cout << std::endl;
+
+  xresult<bool> answer = ask("Do you want to proceed?");
+  if (auto err = answer.error()) {
+    error("{}", *err);
+    return 1;
+  }
+
+  // exit program if they don't want to sync. should we return 0 or 1 here tho?
+  if (*answer == false) return 0;
+
+  // answer == yes
   for (auto &recipe : recipes) {
     if (auto err = recipe->merge()) {
       error("{}", *err);
@@ -241,6 +249,52 @@ int main_throws(int argc, const char **argv) {
   }
 
   return 0;
+}
+
+xresult<bool> ask(string question) {
+  cout << question << " [Y/n] ";
+
+  string answer = "Y";
+  if (flag::confirm) { cin >> answer; }
+  if (answer.length() == 0) return "Received empty answer.";
+
+  char c = tolower(answer.at(0));
+  if (c == 'y') return true;
+  if (c == 'n') return false;
+
+  return fail(fmt::format("Could not understand answer \"{}\"", answer));
+}
+
+/** recursively add a package recipe to the list of recipes, together with its dependencies. they are added in correct
+ * order, so that dependencies are added first.
+ */
+void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
+                        bool &missing_pkg_error) {
+  for (auto &pkg : recipe->get_srcinfo().makedepends) {
+    if (pacman.HasPackage(pkg)) continue;
+
+    auto recipe_makedepends = pkgbuild::New(pkg);
+    if (auto err = !recipe_makedepends) {
+      error("{}", *err);
+      missing_pkg_error = true;
+    } else {
+      add_recipe_to_list(recipes, *recipe_makedepends, pacman, missing_pkg_error);
+    }
+  }
+
+  for (auto &pkg : recipe->get_srcinfo().depends) {
+    if (pacman.HasPackage(pkg)) continue;
+
+    auto recipe_depends = pkgbuild::New(pkg);
+    if (auto err = !recipe_depends) {
+      error("{}", *err);
+      missing_pkg_error = true;
+    } else {
+      add_recipe_to_list(recipes, *recipe_depends, pacman, missing_pkg_error);
+    }
+  }
+
+  recipes.push_back(recipe);
 }
 
 namespace ymerge {

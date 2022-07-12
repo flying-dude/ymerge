@@ -1,21 +1,24 @@
 #pragma once
 
+#include <fmt/core.h>
+
 #include <filesystem>
 #include <memory>
 #include <optional>
-#include <srcinfo.hpp>
 #include <string>
 #include <vector>
-#include <xresult.hpp>
-#include <ymerge.hpp>
+
+#include "srcinfo.hpp"
+#include "xresult.hpp"
+#include "ymerge.hpp"
 
 namespace fly {
 
 /// A directory containing an Arch Linux PKGBUILD.
 struct pkgbuild {
-  std::string working_name;  // tentative name used before reading .SRCINFO
   std::optional<std::filesystem::path> build_dir = std::nullopt;
-  std::optional<srcinfo> info_ = std::nullopt;
+  std::string working_name;  // tentative name used before reading .SRCINFO
+
   pkgbuild(std::string working_name) : working_name(working_name) {}
   virtual ~pkgbuild(){};
   static xresult<std::shared_ptr<pkgbuild>> New(std::string);  // factory function for abstract type
@@ -34,6 +37,21 @@ struct pkgbuild {
   void print_srcinfo();
   xresult<void> install();
   xresult<void> remove();
+
+  // obtain full package name including pkgver and pkgrel.
+  std::string full_name() {
+    init_srcinfo();
+    return fmt::format("{}-{}-{}", info_->pkgname, info_->pkgver, info_->pkgrel);
+  }
+
+  // TODO merge this into one function with init_srcinfo().
+  srcinfo& get_srcinfo() {
+    if (auto err = init_srcinfo()) throw std::runtime_error(*err);
+    return *info_;
+  }
+
+ private:
+  std::optional<srcinfo> info_ = std::nullopt;
 };
 
 /// Obtain a PKGBUILD from Arch Linux AUR.
@@ -47,7 +65,7 @@ struct pkgbuild_aur : pkgbuild {
 /// Specify a folder containing a PKGBUILD.
 struct pkgbuild_raw : pkgbuild {
   std::filesystem::path pkg_folder;
-  pkgbuild_raw(std::filesystem::path &pkg_folder, std::string working_name = "PKGBUILD")
+  pkgbuild_raw(std::filesystem::path& pkg_folder, std::string working_name = "PKGBUILD")
       : pkgbuild(working_name), pkg_folder(pkg_folder) {}
   ~pkgbuild_raw() {}
   xresult<void> init_build_dir();
