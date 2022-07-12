@@ -37,9 +37,9 @@ Options:
     --version -v   print version
 
     --nocolor      turn off colors for produced shell output
-    --noconfirm    skip confirmation and pick default answers automatically
     --quiet -q     minimize output
     --verbose      increase verbosity of output
+    --yes -y       skip confirmation and pick default answers automatically
 
     --remove -r    remove (uninstall) packages
     --srcinfo      only print srcinfo but do not build
@@ -109,12 +109,10 @@ int main_throws(int argc, const char **argv) {
     if (arg == "-h" || arg == "--help") {
       cout << help << endl;
       return 0;
-    } else if (arg == "--confirm") {
+    } else if (arg == "--ask") {
       flag::confirm = true;
     } else if (arg == "--nocolor") {
       flag::color = false;
-    } else if (arg == "--noconfirm") {
-      flag::confirm = false;
     } else if (arg == "--quiet") {
       flag::quiet = true;
     } else if (arg == "--remove") {
@@ -127,6 +125,8 @@ int main_throws(int argc, const char **argv) {
       flag::verbose = true;
     } else if (arg == "--version") {
       flag::version = true;
+    } else if (arg == "--yes") {
+      flag::confirm = false;
     } else if (arg == "--") {
       warn("cli flag \"--\" currently has no function.");
     } else if (arg == "-" || arg.starts_with("--")) {
@@ -143,6 +143,7 @@ int main_throws(int argc, const char **argv) {
           case 'r': flag::remove = true; break;
           case 's': flag::sync = true; break;
           case 'v': flag::version = true; break;
+          case 'y': flag::confirm = false; break;
           default: error("unknown cli flag shorthandle: \"-{}\"", c); cli_error = true;
         }
       }

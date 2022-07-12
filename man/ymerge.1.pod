@@ -41,14 +41,15 @@ Increase verbosity of output. Prints more information.
 
 Turn off colored output.
 
-=item B<--noconfirm>
+=item B<-y>, B<--yes>
 
 Skip confirmation dialogs during execution and pick default answers
 automatically. Non-interactive usage suitable for shell scripting.
 
-=item B<--confirm>
+=item B<--ask>
 
-Override "--noconfirm" to enable confirmation again.
+Override "--yes" to enable confirmation at decision points again. Default is to
+always "--ask", if neither flag is specified.
 
 =back
 
