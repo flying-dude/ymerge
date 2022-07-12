@@ -195,6 +195,9 @@ int main_throws(int argc, const char **argv) {
     }
   }
 
+  // if no packages are requested for install, we are done at this point.
+  if (pkgs.v.empty()) return 0;
+
   if (!exists(git_dir)) {
     error("package dir \"{}\" not present. use \"ymerge --sync\" to fetch package database.", pkg_dir.c_str());
     return 1;
