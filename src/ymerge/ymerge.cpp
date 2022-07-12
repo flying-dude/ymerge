@@ -41,6 +41,7 @@ Options:
     --srcinfo      only print srcinfo but do not build (unless --makepkg is also specified)
     --sync -s      update local package database
     --verbose      increase verbosity of output
+    --version      print ymerge version
 
 Examples:
     Update the package database:
@@ -68,6 +69,7 @@ bool remove = false;
 bool srcinfo = false;
 bool sync = false;
 bool verbose = false;
+bool version = false;
 }  // namespace flag
 
 path cache_dir;
@@ -118,6 +120,8 @@ int main_throws(int argc, const char **argv) {
       flag::sync = true;
     } else if (arg == "--verbose") {
       flag::verbose = true;
+    } else if (arg == "--version") {
+      flag::version = true;
     } else if (arg == "--") {
       warn("cli flag \"--\" currently has no function.");
     } else if (arg == "-" || arg.starts_with("--")) {
@@ -144,6 +148,10 @@ int main_throws(int argc, const char **argv) {
   // report all errors that occured we -do- exit on error tho, which is
   // what we do here.
   if (cli_error) return 1;
+
+  /* print version, if requested. intentionally not exiting here. user is allowed to request
+   * further actions, like installing packages, in one command. */
+  if (flag::version) { std::cout << "ymerge version " YMERGE_VERSION << std::endl; }
 
   cache_dir = path(xdgCacheHome()) / "ymerge";
   repo_dir = cache_dir / "local-repo";

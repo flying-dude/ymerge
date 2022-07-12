@@ -14,6 +14,7 @@ extern bool remove;
 extern bool srcinfo;
 extern bool sync;
 extern bool verbose;
+extern bool version;
 }  // namespace flag
 
 // derive build steps from flags and reflect the logic between them.
