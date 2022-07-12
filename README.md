@@ -2,12 +2,12 @@
 
 # ymerge
 
-A Source-Based Package Manager for Arch Linux.
+An AUR Helper and Source-Based Package Manager for Arch Linux.
 
 ```
 Usage: ymerge [options] [pkg...]
 
-A Source-Based Package Manager for Arch Linux.
+An AUR Helper and Source-Based Package Manager for Arch Linux.
 
 Options:
     --help -h             print help

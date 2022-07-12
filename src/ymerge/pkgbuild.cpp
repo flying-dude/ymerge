@@ -94,13 +94,19 @@ void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 xresult<void> pkgbuild::install() {
   cmd_options opt;
   opt.working_dir = *build_dir;
-  return exec_opt(opt, "makepkg", "--syncdeps", "--install");
+  if (flag::confirm)
+    return exec_opt(opt, "makepkg", "--syncdeps", "--install");
+  else
+    return exec_opt(opt, "makepkg", "--syncdeps", "--install", "--noconfirm");
 }
 
 xresult<void> pkgbuild::remove() {
-  // when we remove we won't even init srcinfo. that means we use working_name instead of
-  // srcinfo->pkgname. probably these two are always identical anyway.
-  return exec("sudo", "pacman", "--remove", working_name);
+  // when we remove a package we won't even init srcinfo. that means we have to use working_name instead of
+  // srcinfo->pkgname, since that one is N/A. probably these two are (always?) identical anyway.
+  if (flag::confirm)
+    return exec("sudo", "pacman", "--remove", working_name);
+  else
+    return exec("sudo", "pacman", "--noconfirm", "--remove", working_name);
 }
 
 }  // namespace fly

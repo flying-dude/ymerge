@@ -30,12 +30,14 @@ namespace fly {
 const char *usage = R"(Usage: ymerge [options] [pkg...]
 Version: )" YMERGE_VERSION R"(
 
-A Source-Based Package Manager for Arch Linux.
+An AUR Helper and Source-Based Package Manager for Arch Linux.
 
 Options:
     --help -h             print help
 
+    --confirm      override previous "--noconfirm" to ask for confirmation
     --nocolor      turn off colors for produced shell output
+    --noconfirm    do not ask for confirmation. instead pick default answer automatically
     --quiet -q     reduce output
     --remove -R    remove (uninstall) packages
     --srcinfo      only print srcinfo but do not build (unless --makepkg is also specified)
@@ -62,6 +64,7 @@ Version: )" YMERGE_VERSION;
 
 namespace flag {
 bool color = true;
+bool confirm = true;
 bool quiet = false;
 bool remove = false;
 bool srcinfo = false;
@@ -106,8 +109,12 @@ int main_throws(int argc, const char **argv) {
     if (arg == "-h" || arg == "--help") {
       cout << usage << endl;
       return 0;
+    } else if (arg == "--confirm") {
+      flag::confirm = true;
     } else if (arg == "--nocolor") {
       flag::color = false;
+    } else if (arg == "--noconfirm") {
+      flag::confirm = false;
     } else if (arg == "-q" || arg == "--quiet") {
       flag::quiet = true;
     } else if (arg == "-R" || arg == "--remove") {
@@ -149,7 +156,7 @@ int main_throws(int argc, const char **argv) {
 
   /* print version, if requested. intentionally not exiting here. user is allowed to request
    * further actions, like installing packages, in one command. */
-  if (flag::version) { std::cout << "ymerge version " YMERGE_VERSION << std::endl; }
+  if (flag::version) { std::cout << "ymerge version: " YMERGE_VERSION << std::endl; }
 
   cache_dir = path(xdgCacheHome()) / "ymerge";
   git_dir = cache_dir / "curated-aur";
@@ -172,9 +179,10 @@ int main_throws(int argc, const char **argv) {
     fmt::print("Package dir \"{}\" not present.\n", pkg_dir.c_str());
     fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
 
-    string answer;
     cout << "Do you want me to perform \"ymerge --sync\" right now? [Y/n] ";
-    cin >> answer;
+
+    string answer = "Y";
+    if (flag::confirm) { cin >> answer; }
 
     if (answer.length() == 0) {
       error("Received empty answer.");

@@ -20,6 +20,7 @@ namespace fly {
 
 namespace flag {
 extern bool color;
+extern bool confirm;
 extern bool quiet;
 extern bool remove;
 extern bool srcinfo;
