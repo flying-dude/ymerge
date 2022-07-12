@@ -27,23 +27,23 @@ using namespace nlohmann;
 
 namespace fly {
 
-const char *usage = R"(Usage: ymerge [options] [pkg...]
+const char *help = R"(Usage: ymerge [options] [pkg...]
 Version: )" YMERGE_VERSION R"(
 
 An AUR Helper and Source-Based Package Manager for Arch Linux.
 
 Options:
-    --help -h             print help
+    --help -h      print help
+    --version -v   print version
 
-    --confirm      override previous "--noconfirm" to ask for confirmation
     --nocolor      turn off colors for produced shell output
-    --noconfirm    do not ask for confirmation. instead pick default answer automatically
-    --quiet -q     reduce output
-    --remove -R    remove (uninstall) packages
-    --srcinfo      only print srcinfo but do not build (unless --makepkg is also specified)
-    --sync -s      update local package database
+    --noconfirm    skip confirmation and pick default answers automatically
+    --quiet -q     minimize output
     --verbose      increase verbosity of output
-    --version      print ymerge version
+
+    --remove -r    remove (uninstall) packages
+    --srcinfo      only print srcinfo but do not build
+    --sync -s      update local package database
 
 Examples:
     Update the package database:
@@ -58,7 +58,7 @@ Examples:
     Remove the "xmake" and "build2" packages:
     $ ymerge --remove xmake build2)";
 
-auto short_usage = R"(Usage: ymerge [options] [pkg...]
+auto usage = R"(Usage: ymerge [options] [pkg...]
 Help: ymerge --help
 Version: )" YMERGE_VERSION;
 
@@ -97,7 +97,7 @@ int main(int argc, const char **argv) {
 /// this is the actual main-function. it can throw exceptions, which need to be caught by the calling function.
 int main_throws(int argc, const char **argv) {
   if (argc == 1) {
-    cout << short_usage << endl;
+    cout << usage << endl;
     return 0;
   }
 
@@ -107,7 +107,7 @@ int main_throws(int argc, const char **argv) {
     string arg = argv[i];
 
     if (arg == "-h" || arg == "--help") {
-      cout << usage << endl;
+      cout << help << endl;
       return 0;
     } else if (arg == "--confirm") {
       flag::confirm = true;
@@ -115,9 +115,9 @@ int main_throws(int argc, const char **argv) {
       flag::color = false;
     } else if (arg == "--noconfirm") {
       flag::confirm = false;
-    } else if (arg == "-q" || arg == "--quiet") {
+    } else if (arg == "--quiet") {
       flag::quiet = true;
-    } else if (arg == "-R" || arg == "--remove") {
+    } else if (arg == "--remove") {
       flag::remove = true;
     } else if (arg == "--srcinfo") {
       flag::srcinfo = true;
@@ -138,9 +138,11 @@ int main_throws(int argc, const char **argv) {
       int j = 1;
       for (char c = arg_[j]; c != '\0'; c = arg_[++j]) {
         switch (c) {
-          case 'h': cout << usage << endl; return 0;
-          case 'R': flag::remove = true; break;
+          case 'h': cout << help << endl; return 0;
+          case 'q': flag::quiet = true; break;
+          case 'r': flag::remove = true; break;
           case 's': flag::sync = true; break;
+          case 'v': flag::version = true; break;
           default: error("unknown cli flag shorthandle: \"-{}\"", c); cli_error = true;
         }
       }

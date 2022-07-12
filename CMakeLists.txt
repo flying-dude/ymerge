@@ -118,6 +118,10 @@ if(POD2MAN)
         RELEASE "Auracle ${CMAKE_PROJECT_VERSION}"
         SECTION 1
         CENTER "Auracle Manual")
+    add_manpage(MANFILE "ymerge"
+        RELEASE "ymerge ${CMAKE_PROJECT_VERSION}"
+        SECTION 1
+        CENTER "ymerge Manual")
 elseif(POD2MAN)
     message(WARNING "Failed to find pod2man, not generating manpage")
 endif(POD2MAN)

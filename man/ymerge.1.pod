@@ -1,0 +1,75 @@
+=head1 NAME
+
+ymerge - An AUR Helper and Source-Based Package Manager for Arch Linux.
+
+=head1 SYNOPSIS
+
+I<ymerge> [OPTIONS...] [PACKAGES...]
+
+=head1 DESCRIPTION
+
+ymerge is a package manager for Arch Linux that installs extra packages from
+source by using PKGBUILD package recipes. These recipes are either obtained from
+the Arch User Repository or from a dedicated git repository hosted on github:
+https://github.com/flying-dude/curated-aur
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Print a help page text and exit.
+
+=item B<-v>, B<--version>
+
+Print which version of ymerge is installed on your computer.
+
+=back
+
+=head1 SHELL BEHAVIOUR
+
+=over 4
+
+=item B<-q>, B<--quiet>
+
+Minimize output.
+
+=item B<--verbose>
+
+Increase verbosity of output. Prints more information.
+
+=item B<--nocolor>
+
+Turn off colored output.
+
+=item B<--noconfirm>
+
+Skip confirmation dialogs during execution and pick default answers
+automatically. Non-interactive usage suitable for shell scripting.
+
+=item B<--confirm>
+
+Override "--noconfirm" to enable confirmation again.
+
+=back
+
+=head1 PACKAGE OPTIONS
+
+=over 4
+
+=item B<-r>, B<--remove>
+
+Remove (uninstall) specified packages, instead of installing them.
+
+=item B<--srcinfo>
+
+Only print SRCINFO but do not build.
+
+=item B<-s>, B<--sync>
+
+Update local package database.
+
+=back
+
+=head1 AUTHOR
+
+flying-dude E<lt>dude@flyspace.devE<gt>
