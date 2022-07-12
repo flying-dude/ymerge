@@ -113,10 +113,4 @@ FMT_INLINE xresult<void> exec(T &&...args) {
   return exec_opt({}, args...);
 }
 
-// git command shorthandle. use "-C" flag to change working dir.
-template <typename... Argv>
-xresult<void> git(Argv &&...argv) {
-  return exec("git", argv...);
-}
-
 }  // namespace fly

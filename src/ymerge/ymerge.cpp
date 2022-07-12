@@ -60,8 +60,6 @@ auto short_usage = R"(Usage: ymerge [options] [pkg...]
 Help: ymerge --help
 Version: )" YMERGE_VERSION;
 
-#define CURATED_URL "https://github.com/flying-dude/curated-aur"
-
 namespace flag {
 bool color = true;
 bool quiet = false;
@@ -154,44 +152,16 @@ int main_throws(int argc, const char **argv) {
   if (flag::version) { std::cout << "ymerge version " YMERGE_VERSION << std::endl; }
 
   cache_dir = path(xdgCacheHome()) / "ymerge";
-  repo_dir = cache_dir / "local-repo";
   git_dir = cache_dir / "curated-aur";
   pkg_dir = git_dir / "pkg";
 
-  // TODO check if commands exist before using them
+  // TODO check if shell commands (like git) exist before using them
   // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
 
   if (flag::sync) {
-    if (!exists(cache_dir)) create_directories(cache_dir);
-
-    if (!exists(git_dir)) {
-      auto err = git("-C", cache_dir.c_str(), "clone", "--depth", "1", CURATED_URL);
-      if (err) {
-        error("{}", *err);
-        return 1;
-      }
-    } else {
-      // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
-      cmd_options opt;
-      opt.stdout_file = "/dev/null";
-      if (auto err = exec_opt(opt, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree")) {
-        error("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str());
-        return 1;
-      }
-
-      // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
-      if (auto err = git("-C", git_dir.c_str(), "fetch", "--depth", "1")) {
-        error("{}", *err);
-        return 1;
-      }
-
-      if (auto err = git("-C", git_dir.c_str(), "reset", "--hard", "origin/main")) {
-        error("{}", *err);
-        return 1;
-      }
-
-      // is this even needed?
-      // git("-C", git_dir.c_str(), "clean", "-dfx");
+    if (auto err = ymerge::sync()) {
+      error("{}", *err);
+      return 1;
     }
   }
 
@@ -199,8 +169,33 @@ int main_throws(int argc, const char **argv) {
   if (pkgs.v.empty()) return 0;
 
   if (!exists(git_dir)) {
-    error("package dir \"{}\" not present. use \"ymerge --sync\" to fetch package database.", pkg_dir.c_str());
-    return 1;
+    fmt::print("Package dir \"{}\" not present.\n", pkg_dir.c_str());
+    fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
+
+    string answer;
+    cout << "Do you want me to perform \"ymerge --sync\" right now? [Y/n] ";
+    cin >> answer;
+
+    if (answer.length() == 0) {
+      error("Received empty answer.");
+      return 1;
+    }
+
+    char c = tolower(answer.at(0));
+
+    // exit program if they don't want to sync. should we return 0 or 1 here tho?
+    if (c == 'n') return 0;
+
+    if (c != 'y') {
+      error("Could not understand answer \"{}\"", answer);
+      return 1;
+    }
+
+    // c == 'y'
+    if (auto err = ymerge::sync()) {
+      error("{}", *err);
+      return 1;
+    }
   }
 
   auto whitelist_bytes = file_contents(git_dir / "aur-whitelist.json");
@@ -236,3 +231,41 @@ int main_throws(int argc, const char **argv) {
 
   return 0;
 }
+
+namespace ymerge {
+
+const char *curated_url = "https://github.com/flying-dude/curated-aur";
+
+fly::xresult<void> sync(optional<path> git_dir_, optional<string> git_url_, optional<string> stdout,
+                        optional<string> stderr) {
+  path git_dir = git_dir_ ? *git_dir_ : fly::git_dir;
+  string git_url = git_url_ ? *git_url_ : curated_url;
+
+  cmd_options opt;
+  opt.stdout_file = stdout;
+  opt.stderr_file = stderr;
+
+  if (!exists(git_dir)) {
+    create_directories(git_dir);
+    auto err = exec("git", "-C", cache_dir.c_str(), "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
+    if (err) return err;
+  } else {
+    // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
+    cmd_options opt_rev_parse;
+    opt_rev_parse.stdout_file = "/dev/null";
+    if (auto err = exec_opt(opt_rev_parse, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree"))
+      return fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str());
+
+    // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
+    if (auto err = exec_opt(opt, "git", "-C", git_dir.c_str(), "fetch", "--depth", "1")) return err;
+
+    if (auto err = exec_opt(opt, "git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main")) return err;
+
+    // is this even needed?
+    // exec_opt(opt, "git", "-C", git_dir.c_str(), "clean", "-dfx");
+  }
+
+  return nullopt;
+}
+
+}  // namespace ymerge

@@ -63,11 +63,11 @@ optional<string> pkgbuild::merge() {
 
 xresult<void> pkgbuild_aur::init_build_dir() {
 	auto url = fmt::format("https://aur.archlinux.org/{}.git", working_name);
-	if (auto err = git("clone", url, *build_dir)) {
+	if (auto err = exec("git", "clone", url, *build_dir)) {
 		return *err;
 	} else {
 		// https://stackoverflow.com/questions/3489173/how-to-clone-git-repository-with-specific-revision-changeset
-		return git("-C", *build_dir, "reset", "--hard", git_hash);
+		return exec("git", "-C", *build_dir, "reset", "--hard", git_hash);
 	}
 }
 
