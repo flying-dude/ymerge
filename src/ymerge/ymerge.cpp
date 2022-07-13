@@ -42,6 +42,7 @@ Options:
     --verbose      increase verbosity of output
     --yes -y       skip confirmation and pick default answers automatically
 
+    --pretend -p   show what would be done and exit
     --remove -r    remove (uninstall) packages
     --srcinfo      only print srcinfo but do not build
     --sync -s      update local package database
@@ -132,7 +133,7 @@ void main_throws(int argc, const char **argv) {
     } else if (arg == "--sync") {
       flag::sync = true;
     } else if (arg == "--update") {
-      flag::update = false;
+      flag::update = true;
     } else if (arg == "--verbose") {
       flag::verbose = true;
     } else if (arg == "--version") {
@@ -211,7 +212,6 @@ void main_throws(int argc, const char **argv) {
   auracle::Pacman pacman;
 
   if (flag::update) todo("implement --update flag");
-  if (flag::pretend) todo("implement --pretend flag");
 
   // collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
   vector<shared_ptr<pkgbuild>> recipes;
@@ -248,6 +248,9 @@ void main_throws(int argc, const char **argv) {
 }
 
 bool ask(string question) {
+  // shouldn't ask during non-interactive "--pretend"
+  if (flag::pretend) return false;
+
   cout << question << " [Y/n] ";
 
   string answer = "Y";

@@ -54,7 +54,6 @@ void pkgbuild::merge() {
   if (step::srcinfo() || step::install()) init_srcinfo();
   if (step::srcinfo()) print_srcinfo();
   if (step::install()) install();
-  if (step::remove()) remove();
 }
 
 void pkgbuild_aur::init_build_dir(std::filesystem::path& build_dir) {

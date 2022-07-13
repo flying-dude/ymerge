@@ -29,6 +29,20 @@ Print which version of ymerge is installed on your computer.
 
 =over 4
 
+=item B<--ask>
+
+Override "--yes" to enable confirmation at decision points again. Default is to
+always "--ask", if neither flag is specified.
+
+=item B<--nocolor>
+
+Turn off colored output.
+
+=item B<-p>, B<--pretend>
+
+Only list what would be done without actually compiling or installing anything.
+This will not prompt for confirm but exit instead with return 0.
+
 =item B<-q>, B<--quiet>
 
 Minimize output.
@@ -37,30 +51,16 @@ Minimize output.
 
 Increase verbosity of output. Prints more information.
 
-=item B<--nocolor>
-
-Turn off colored output.
-
 =item B<-y>, B<--yes>
 
 Skip confirmation dialogs during execution and pick default answers
 automatically. Non-interactive usage suitable for shell scripting.
-
-=item B<--ask>
-
-Override "--yes" to enable confirmation at decision points again. Default is to
-always "--ask", if neither flag is specified.
 
 =back
 
 =head1 PACKAGE OPTIONS
 
 =over 4
-
-=item B<-p>, B<--pretend>
-
-Only list what would be done without actually doing anything.
-(FUTURE) This feature is not yet implemented.
 
 =item B<-r>, B<--remove>
 
