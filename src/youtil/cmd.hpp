@@ -28,49 +28,63 @@ struct cmd_options {
  * were running the command from a shell script (where the interpreter does the same thing for each given command). */
 int exec_prog(std::vector<std::string> argv, cmd_options opt);
 
+/// Create a string representation of the given command.
+inline void cmd2str(std::stringstream &ss) {}  // required for case of empty argument array
+template <typename Args>
+inline void cmd2str(std::stringstream &ss, std::string prefix, std::vector<Args> args) {
+  bool first = true;
+  for (auto &arg : args) {
+    ss << (first ? prefix : " ") << arg;
+    first = false;
+  }
+}
+template <typename Arg>
+inline void cmd2str(std::stringstream &ss, std::string prefix, Arg arg) {
+  ss << prefix << arg;
+}
+template <typename Arg, typename... Argv>
+inline void cmd2str(std::stringstream &ss, std::string prefix, Arg arg, Argv... argv) {
+  cmd2str(ss, prefix, arg);
+  cmd2str(ss, " ", argv...);
+}
+
+/// Create a string representation of the given command.
+template <typename Arg, typename... Argv>
+inline std::string cmd2str(cmd_options opt, Arg arg, Argv... argv) {
+  std::stringstream ss;
+
+  std::string prefix = "";
+  if (opt.working_dir) prefix = opt.working_dir->string() + " :: ";
+
+  cmd2str(ss, prefix, arg, argv...);
+  return ss.str();
+}
+
 /// Helper function to fill a vector with given varargs.
+template <typename T, typename Args>
+inline void build_vector(std::vector<T> &argv, std::vector<Args> args) {
+  for (auto &arg : args) argv.push_back(arg);
+}
 template <typename T, typename Arg>
-void build_vector(std::vector<T> &argv, Arg arg) {
+inline void build_vector(std::vector<T> &argv, Arg arg) {
   argv.push_back(arg);
 }
 template <typename T, typename Arg, typename... Args>
-void build_vector(std::vector<T> &argv, Arg arg, Args... args) {
-  argv.push_back(arg);
+inline void build_vector(std::vector<T> &argv, Arg arg, Args... args) {
+  build_vector(argv, arg);
   build_vector(argv, args...);
-}
-
-/// Create a string representation of the given command.
-inline void cmd2str(std::stringstream &ss) {}  // required for case of empty argument array
-template <typename Arg>
-void cmd2str(std::stringstream &ss, Arg arg) {
-  ss << " " << arg;
-}
-template <typename Arg, typename... Argv>
-void cmd2str(std::stringstream &ss, Arg arg, Argv... argv) {
-  ss << " " << arg;
-  cmd2str(ss, argv...);
-}
-
-/// Create a string representation of the given command.
-template <typename Arg, typename... Argv>
-std::string cmd2str(cmd_options opt, Arg arg, Argv... argv) {
-  std::stringstream ss;
-  if (opt.working_dir) ss << *opt.working_dir << " :: ";
-  ss << arg;  // first argument is not preceded by a space ' '.
-  cmd2str(ss, argv...);
-  return ss.str();
 }
 
 /// Execute a shell command with arguments and options.
 template <typename... Argv>
-void cmd_opt(cmd_options opt, Argv... argv) {
+inline void cmd_opt(cmd_options opt, Argv... argv) {
   std::vector<std::string> v;
   build_vector(v, argv...);
-  if (exec_prog(v, opt) != 0) throw std::runtime_error("command failed: " + cmd2str(opt, argv...));
+  if (exec_prog(v, opt) != 0) throw std::runtime_error("Command failed: " + cmd2str(opt, argv...));
 }
 
 template <typename... Argv>
-bool cmd_opt_bool(cmd_options opt, Argv... argv) {
+inline bool cmd_opt_bool(cmd_options opt, Argv... argv) {
   std::vector<std::string> v;
   build_vector(v, argv...);
   return exec_prog(v, opt) == 0;
@@ -78,7 +92,7 @@ bool cmd_opt_bool(cmd_options opt, Argv... argv) {
 
 /// Execute a shell command with arguments.
 template <typename... Argv>
-void cmd(Argv... argv) {
+inline void cmd(Argv... argv) {
   cmd_opt({}, argv...);
 }
 
