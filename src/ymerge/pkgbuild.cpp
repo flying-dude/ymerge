@@ -44,27 +44,26 @@ xresult<std::filesystem::path> pkgbuild::init_build_dir() {
     path p = build_dir_.value()->path;
     return p;
   }
-  
+
   xresult<shared_ptr<temporary_directory>> tmp_ = temporary_directory::New(fmt::format("ymerge-{}_", working_name));
   if (auto err = !tmp_) return fail(*err);
-  
+
   build_dir_ = *tmp_;
   path bd = build_dir_.value()->path;
-  if (auto err = init_build_dir(bd))
-    return fail(*err);
-  
+  if (auto err = init_build_dir(bd)) return fail(*err);
+
   return bd;
 }
 
 optional<string> pkgbuild::merge() {
   auto bd = init_build_dir();
   if (auto err = !bd) return *err;
-  
+
   path build_dir = *bd;
   info("build dir: {}", build_dir.c_str());
 
   if (step::srcinfo() || step::install())
-    if (auto err = init_srcinfo()) return *err;
+    if (auto err = !init_srcinfo()) return *err;
 
   if (step::srcinfo()) print_srcinfo();
 
@@ -91,24 +90,24 @@ xresult<void> pkgbuild_raw::init_build_dir(std::filesystem::path& build_dir) {
   return exec("cp", "--recursive", "--no-target-directory", pkg_folder, build_dir);
 }
 
-xresult<void> pkgbuild::init_srcinfo() {
-  if (info_.has_value()) return {};
+xresult<srcinfo*> pkgbuild::init_srcinfo() {
+  if (info_.has_value()) return &info_.value();
 
   auto build_dir = init_build_dir();
-  if (auto err = !build_dir) return *err;
+  if (auto err = !build_dir) return fail(*err);
 
   auto file = *build_dir / ".SRCINFO";
   if (!exists(file)) {
     cmd_options opt;
     opt.working_dir = *build_dir;
     opt.stdout_file = file;
-    if (auto err = exec_opt(opt, "makepkg", "--printsrcinfo")) return *err;
+    if (auto err = exec_opt(opt, "makepkg", "--printsrcinfo")) return fail(*err);
   }
 
   auto data = file_contents(file);
-  if (auto err = !data) return *err;
+  if (auto err = !data) return fail(*err);
   info_ = *data;
-  return {};
+  return &info_.value();
 }
 
 void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }

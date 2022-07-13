@@ -8,10 +8,10 @@
 #include <string>
 #include <vector>
 
+#include "create_temporary_directory.hpp"
 #include "srcinfo.hpp"
 #include "xresult.hpp"
 #include "ymerge.hpp"
-#include "create_temporary_directory.hpp"
 
 namespace fly {
 
@@ -26,8 +26,8 @@ struct pkgbuild {
 
   xresult<std::filesystem::path> init_build_dir();
   virtual xresult<void> init_build_dir(std::filesystem::path& build_dir) = 0;
-  xresult<void> init_srcinfo();
-  
+  xresult<srcinfo*> init_srcinfo();
+
   std::filesystem::path package_archive() {
     return repo_dir / info_->pkgname / "-" / info_->pkgver / "-" / std::to_string(info_->pkgrel) /
            "-x86_64.pkg.tar.zst";
@@ -42,15 +42,11 @@ struct pkgbuild {
   xresult<void> remove();
 
   // obtain full package name including pkgver and pkgrel.
-  std::string full_name() {
-    init_srcinfo();
-    return fmt::format("{}-{}-{}", info_->pkgname, info_->pkgver, info_->pkgrel);
-  }
-
-  // TODO merge this into one function with init_srcinfo().
-  srcinfo& get_srcinfo() {
-    if (auto err = init_srcinfo()) throw std::runtime_error(*err);
-    return *info_;
+  xresult<std::string> full_name() {
+    auto si = init_srcinfo();
+    if (auto err = !si) return fail(*err);
+    srcinfo* s = si.success();
+    return fmt::format("{}-{}-{}", s->pkgname, s->pkgver, s->pkgrel);
   }
 
  private:
@@ -71,7 +67,7 @@ struct pkgbuild_raw : pkgbuild {
   pkgbuild_raw(std::filesystem::path& pkg_folder, std::string working_name = "PKGBUILD")
       : pkgbuild(working_name), pkg_folder(pkg_folder) {}
   ~pkgbuild_raw() {}
-  xresult<void> init_build_dir(std::filesystem::path& build_dir );
+  xresult<void> init_build_dir(std::filesystem::path& build_dir);
 };
 
 }  // namespace fly

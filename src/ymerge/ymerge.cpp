@@ -85,8 +85,8 @@ using namespace auracle;
 using namespace fly;
 
 xresult<bool> ask(std::string question);
-void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
-                        bool &missing_pkg_error);
+xresult<void> add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe,
+                                 auracle::Pacman &pacman, bool &missing_pkg_error);
 
 int main_throws(int argc, const char **argv);
 int main(int argc, const char **argv) {
@@ -220,7 +220,10 @@ int main_throws(int argc, const char **argv) {
       error("{}", *err);
       missing_pkg_error = true;
     } else {
-      add_recipe_to_list(recipes, *recipe, pacman, missing_pkg_error);
+      if (auto err = add_recipe_to_list(recipes, *recipe, pacman, missing_pkg_error)) {
+        error("{}", *err);
+        return 1;
+      }
     }
   }
 
@@ -228,7 +231,14 @@ int main_throws(int argc, const char **argv) {
 
   // TODO use shell colors to distinguish packages selected by the users from packages that are just dependencies
   std::cout << "About to compile and install the following package recipes:";
-  for (auto it = recipes.begin(); it != recipes.end(); it++) { std::cout << " " << it->get()->full_name(); }
+  for (auto it = recipes.begin(); it != recipes.end(); it++) {
+    auto full_name = it->get()->full_name();
+    if (auto err = !full_name) {
+      error("{}", *err);
+      return 1;
+    }
+    std::cout << " " << *full_name;
+  }
   std::cout << std::endl;
 
   xresult<bool> answer = ask("Do you want to proceed?");
@@ -268,9 +278,11 @@ xresult<bool> ask(string question) {
 /** recursively add a package recipe to the list of recipes, together with its dependencies. they are added in correct
  * order, so that dependencies are added first.
  */
-void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
-                        bool &missing_pkg_error) {
-  auto s = recipe->get_srcinfo();
+xresult<void> add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe,
+                                 auracle::Pacman &pacman, bool &missing_pkg_error) {
+  auto serr = recipe->init_srcinfo();
+  if (auto err = !serr) return *err;
+  fly::srcinfo &s = *(serr.success());
   for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 
@@ -291,11 +303,12 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
       error("{}", *err);
       missing_pkg_error = true;
     } else {
-      add_recipe_to_list(recipes, *recipe_depends, pacman, missing_pkg_error);
+      if (auto err = add_recipe_to_list(recipes, *recipe_depends, pacman, missing_pkg_error)) return *err;
     }
   }
 
   recipes.push_back(recipe);
+  return {};
 }
 
 namespace ymerge {
