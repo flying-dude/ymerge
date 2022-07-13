@@ -270,7 +270,8 @@ xresult<bool> ask(string question) {
  */
 void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
                         bool &missing_pkg_error) {
-  for (auto &pkg : recipe->get_srcinfo().makedepends) {
+  auto s = recipe->get_srcinfo();
+  for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 
     auto recipe_makedepends = pkgbuild::New(pkg);
@@ -282,7 +283,7 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
     }
   }
 
-  for (auto &pkg : recipe->get_srcinfo().depends) {
+  for (auto &pkg : s.depends) {
     if (pacman.HasPackage(pkg)) continue;
 
     auto recipe_depends = pkgbuild::New(pkg);

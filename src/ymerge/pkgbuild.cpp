@@ -1,12 +1,14 @@
-#include <cmd.hpp>
-#include <create_temporary_directory.hpp>
-#include <file_contents.hpp>
+#include "pkgbuild.hpp"
+
 #include <filesystem>
 #include <fstream>
-#include <log.hpp>
 #include <nlohmann/json.hpp>
-#include <pkgbuild.hpp>
-#include <ymerge.hpp>
+
+#include "cmd.hpp"
+#include "create_temporary_directory.hpp"
+#include "file_contents.hpp"
+#include "log.hpp"
+#include "ymerge.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -37,16 +39,32 @@ xresult<shared_ptr<pkgbuild>> pkgbuild::New(string pkg) {
   }
 }
 
-optional<string> pkgbuild::merge() {
-  auto tmp_ = temporary_directory::New(fmt::format("ymerge-{}_", working_name));
-  if (auto err = !tmp_) return *err;
-  build_dir = tmp_->path;
-  info("build dir: {}", build_dir->c_str());
-
-  if (step::srcinfo() || step::install()) {
-    if (auto err = init_build_dir()) return *err;
-    if (auto err = init_srcinfo()) return *err;
+xresult<std::filesystem::path> pkgbuild::init_build_dir() {
+  if (build_dir_.has_value()) {
+    path p = build_dir_.value()->path;
+    return p;
   }
+  
+  xresult<shared_ptr<temporary_directory>> tmp_ = temporary_directory::New(fmt::format("ymerge-{}_", working_name));
+  if (auto err = !tmp_) return fail(*err);
+  
+  build_dir_ = *tmp_;
+  path bd = build_dir_.value()->path;
+  if (auto err = init_build_dir(bd))
+    return fail(*err);
+  
+  return bd;
+}
+
+optional<string> pkgbuild::merge() {
+  auto bd = init_build_dir();
+  if (auto err = !bd) return *err;
+  
+  path build_dir = *bd;
+  info("build dir: {}", build_dir.c_str());
+
+  if (step::srcinfo() || step::install())
+    if (auto err = init_srcinfo()) return *err;
 
   if (step::srcinfo()) print_srcinfo();
 
@@ -59,22 +77,25 @@ optional<string> pkgbuild::merge() {
   return {};
 }
 
-xresult<void> pkgbuild_aur::init_build_dir() {
+xresult<void> pkgbuild_aur::init_build_dir(std::filesystem::path& build_dir) {
   auto url = fmt::format("https://aur.archlinux.org/{}.git", working_name);
-  if (auto err = exec("git", "clone", url, *build_dir)) {
+  if (auto err = exec("git", "clone", url, build_dir)) {
     return *err;
   } else {
     // https://stackoverflow.com/questions/3489173/how-to-clone-git-repository-with-specific-revision-changeset
-    return exec("git", "-C", *build_dir, "reset", "--hard", git_hash);
+    return exec("git", "-C", build_dir, "reset", "--hard", git_hash);
   }
 }
 
-xresult<void> pkgbuild_raw::init_build_dir() {
-  return exec("cp", "--recursive", "--no-target-directory", pkg_folder, *build_dir);
+xresult<void> pkgbuild_raw::init_build_dir(std::filesystem::path& build_dir) {
+  return exec("cp", "--recursive", "--no-target-directory", pkg_folder, build_dir);
 }
 
 xresult<void> pkgbuild::init_srcinfo() {
   if (info_.has_value()) return {};
+
+  auto build_dir = init_build_dir();
+  if (auto err = !build_dir) return *err;
 
   auto file = *build_dir / ".SRCINFO";
   if (!exists(file)) {
@@ -95,7 +116,7 @@ void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 // this will actually install the package using pacman
 xresult<void> pkgbuild::install() {
   cmd_options opt;
-  opt.working_dir = *build_dir;
+  opt.working_dir = *init_build_dir();
   if (flag::confirm)
     return exec_opt(opt, "makepkg", "--syncdeps", "--install");
   else
