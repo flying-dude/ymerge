@@ -16,8 +16,7 @@ namespace fly {
  * Create a temporary directory in std::temp_directory_path() folder. Name is randomly generated
  * with given string prefix.
  */
-std::filesystem::path create_temporary_directory(std::string prefix = TMP_PREFIX,
-                                                          unsigned long long max_tries = 1000);
+std::filesystem::path create_temporary_directory(std::string prefix = TMP_PREFIX, unsigned long long max_tries = 1000);
 
 /**
  * A type for temp dirs that will auto-create in constructor and auto-delete the dir in destructor.
@@ -30,14 +29,14 @@ std::filesystem::path create_temporary_directory(std::string prefix = TMP_PREFIX
  * been called. Therefore, calling ::Delete() multiple times is completely safe.
  */
 struct temporary_directory {
-	std::filesystem::path path;
-	bool deleted = false;
+  std::filesystem::path path;
+  bool deleted = false;
 
-	static std::shared_ptr<temporary_directory> New(std::string prefix = TMP_PREFIX);
-	void Delete();
+  static std::shared_ptr<temporary_directory> New(std::string prefix = TMP_PREFIX);
+  void Delete();
 
-	temporary_directory(std::filesystem::path path) : path(path) {}
-	~temporary_directory() { Delete(); }
+  temporary_directory(std::filesystem::path path) : path(path) {}
+  ~temporary_directory() { Delete(); }
 };
 
-} // namespace fly
+}  // namespace fly
