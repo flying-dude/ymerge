@@ -40,7 +40,7 @@ include_directories(src/ymerge)
 
 file(GLOB_RECURSE ymerge_FILES src/ymerge/*)
 add_executable(ymerge ${ymerge_FILES})
-target_link_libraries(ymerge libauracle youtil fmt::fmt)
+target_link_libraries(ymerge libauracle youtil)
 
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})

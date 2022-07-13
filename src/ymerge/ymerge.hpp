@@ -19,10 +19,12 @@ namespace fly {
 namespace flag {
 extern bool color;
 extern bool confirm;
+extern bool pretend;
 extern bool quiet;
 extern bool remove;
 extern bool srcinfo;
 extern bool sync;
+extern bool update;
 extern bool verbose;
 extern bool version;
 }  // namespace flag

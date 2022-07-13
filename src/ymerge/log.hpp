@@ -79,6 +79,7 @@ FMT_INLINE void todo(fmt::format_string<T...> fmt, T &&...args) {
   const auto &vargs = fmt::make_format_args(args...);
   fmt::detail::is_utf8() ? vprint(fmt, vargs) : fmt::detail::vprint_mojibake(stdout, fmt, vargs);
   std::putc('\n', stdout);
+  throw std::runtime_error("");
 }
 
 // note: this should be reusable for info, warn, error etc. but so far i wasn't able to tame the template errors.

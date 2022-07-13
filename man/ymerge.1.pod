@@ -57,6 +57,11 @@ always "--ask", if neither flag is specified.
 
 =over 4
 
+=item B<-p>, B<--pretend>
+
+Only list what would be done without actually doing anything.
+(FUTURE) This feature is not yet implemented.
+
 =item B<-r>, B<--remove>
 
 Remove (uninstall) specified packages, instead of installing them.
@@ -68,6 +73,11 @@ Only print SRCINFO but do not build.
 =item B<-s>, B<--sync>
 
 Update local package database.
+
+=item B<-u>, B<--update>
+
+Update specified packages. Empty package list will update all packages.
+(FUTURE) This feature is not yet implemented.
 
 =back
 

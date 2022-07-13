@@ -66,10 +66,12 @@ Version: )" YMERGE_VERSION;
 namespace flag {
 bool color = true;
 bool confirm = true;
+bool pretend = false;
 bool quiet = false;
 bool remove = false;
 bool srcinfo = false;
 bool sync = false;
+bool update = false;
 bool verbose = false;
 bool version = false;
 }  // namespace flag
@@ -119,6 +121,8 @@ void main_throws(int argc, const char **argv) {
       flag::confirm = true;
     } else if (arg == "--nocolor") {
       flag::color = false;
+    } else if (arg == "--pretend") {
+      flag::pretend = true;
     } else if (arg == "--quiet") {
       flag::quiet = true;
     } else if (arg == "--remove") {
@@ -127,6 +131,8 @@ void main_throws(int argc, const char **argv) {
       flag::srcinfo = true;
     } else if (arg == "--sync") {
       flag::sync = true;
+    } else if (arg == "--update") {
+      flag::update = false;
     } else if (arg == "--verbose") {
       flag::verbose = true;
     } else if (arg == "--version") {
@@ -145,9 +151,11 @@ void main_throws(int argc, const char **argv) {
       for (char c = arg_[j]; c != '\0'; c = arg_[++j]) {
         switch (c) {
           case 'h': cout << help << endl; return;
+          case 'p': flag::pretend = true; break;
           case 'q': flag::quiet = true; break;
           case 'r': flag::remove = true; break;
           case 's': flag::sync = true; break;
+          case 'u': flag::update = true; break;
           case 'v': flag::version = true; break;
           case 'y': flag::confirm = false; break;
           default: error("unknown cli flag shorthandle: \"-{}\"", c); cli_error = true;
@@ -201,6 +209,9 @@ void main_throws(int argc, const char **argv) {
   whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
+
+  if (flag::update) todo("implement --update flag");
+  if (flag::pretend) todo("implement --pretend flag");
 
   // collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
   vector<shared_ptr<pkgbuild>> recipes;
