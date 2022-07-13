@@ -1,18 +1,19 @@
-#include <fmt/core.h>
-#include <xdgdirs.h>
+#include "ymerge.hpp"
 
-#include <cmd.hpp>
-#include <file_contents.hpp>
+#include <fmt/core.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <log.hpp>
-#include <pkgbuild.hpp>
 #include <sstream>
-#include <unique_list.hpp>
-#include <ymerge.hpp>
 
 #include "auracle/auracle.hh"
+#include "cmd.hpp"
+#include "file_contents.hpp"
+#include "log.hpp"
+#include "pkgbuild.hpp"
+#include "unique_list.hpp"
+#include "xdgdirs.h"
 
 /**
  * Package manager for the curated-aur. The command-line interface is inspired by Gentoo Portage:
@@ -84,9 +85,9 @@ json whitelist;
 using namespace auracle;
 using namespace fly;
 
-xresult<bool> ask(std::string question);
-xresult<void> add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe,
-                                 auracle::Pacman &pacman, bool &missing_pkg_error);
+bool ask(std::string question);
+void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
+                        bool &missing_pkg_error);
 
 int main_throws(int argc, const char **argv);
 int main(int argc, const char **argv) {
@@ -172,42 +173,28 @@ int main_throws(int argc, const char **argv) {
   // TODO check if shell commands (like git) exist before using them
   // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
 
-  if (flag::sync) {
-    if (auto err = ymerge::sync()) {
-      error("{}", *err);
-      return 1;
-    }
-  }
+  if (flag::sync) ymerge::sync();
 
   // if no packages are requested for install, we are done at this point.
   if (pkgs.v.empty()) return 0;
+
+  if (flag::remove) throw runtime_error("package removal not yet implemented.");
 
   if (!exists(git_dir)) {
     fmt::print("Package dir \"{}\" not present.\n", pkg_dir.c_str());
     fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
 
-    xresult<bool> answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
-    if (auto err = answer.error()) {
-      error("{}", *err);
-      return 1;
-    }
+    bool answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
 
     // exit program if they don't want to sync. should we return 0 or 1 here tho?
-    if (*answer == false) return 0;
+    if (answer == false) return 0;
 
     // answer == yes
-    if (auto err = ymerge::sync()) {
-      error("{}", *err);
-      return 1;
-    }
+    ymerge::sync();
   }
 
-  auto whitelist_bytes = file_contents(git_dir / "aur-whitelist.json");
-  if (auto err = !whitelist_bytes) {
-    error("{}", *err);
-    return 1;
-  }
-  whitelist = json::parse(*whitelist_bytes);
+  std::string whitelist_bytes = file_contents(git_dir / "aur-whitelist.json");
+  whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
 
@@ -215,15 +202,12 @@ int main_throws(int argc, const char **argv) {
   vector<shared_ptr<pkgbuild>> recipes;
   bool missing_pkg_error = false;
   for (string &pkg : pkgs.v) {
-    auto recipe = pkgbuild::New(pkg);
-    if (auto err = !recipe) {
-      error("{}", *err);
+    optional<shared_ptr<pkgbuild>> recipe = pkgbuild::New_opt(pkg);
+    if (!recipe) {
+      error("package \"{}\" not found", pkg.c_str());
       missing_pkg_error = true;
     } else {
-      if (auto err = add_recipe_to_list(recipes, *recipe, pacman, missing_pkg_error)) {
-        error("{}", *err);
-        return 1;
-      }
+      add_recipe_to_list(recipes, *recipe, pacman, missing_pkg_error);
     }
   }
 
@@ -232,63 +216,54 @@ int main_throws(int argc, const char **argv) {
   // TODO use shell colors to distinguish packages selected by the users from packages that are just dependencies
   std::cout << "About to compile and install the following package recipes:";
   for (auto it = recipes.begin(); it != recipes.end(); it++) {
-    auto full_name = it->get()->full_name();
-    if (auto err = !full_name) {
-      error("{}", *err);
-      return 1;
-    }
-    std::cout << " " << *full_name;
+    std::string full_name = it->get()->full_name();
+    std::cout << " " << full_name;
   }
   std::cout << std::endl;
 
-  xresult<bool> answer = ask("Do you want to proceed?");
-  if (auto err = answer.error()) {
-    error("{}", *err);
-    return 1;
-  }
+  bool answer = ask("Do you want to proceed?");
 
   // exit program if they don't want to sync. should we return 0 or 1 here tho?
-  if (*answer == false) return 0;
+  if (answer == false) return 0;
 
   // answer == yes
-  for (auto &recipe : recipes) {
-    if (auto err = recipe->merge()) {
-      error("{}", *err);
-      return 1;
-    }
-  }
+  for (shared_ptr<pkgbuild> &recipe : recipes) { recipe->merge(); }
 
   return 0;
 }
 
-xresult<bool> ask(string question) {
+bool ask(string question) {
   cout << question << " [Y/n] ";
 
   string answer = "Y";
   if (flag::confirm) { cin >> answer; }
-  if (answer.length() == 0) return "Received empty answer.";
+  if (answer.length() == 0) throw runtime_error("Received empty answer.");
 
   char c = tolower(answer.at(0));
   if (c == 'y') return true;
   if (c == 'n') return false;
 
-  return fail(fmt::format("Could not understand answer \"{}\"", answer));
+  throw runtime_error(fmt::format("Could not understand answer \"{}\"", answer));
 }
 
 /** recursively add a package recipe to the list of recipes, together with its dependencies. they are added in correct
  * order, so that dependencies are added first.
  */
-xresult<void> add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe,
-                                 auracle::Pacman &pacman, bool &missing_pkg_error) {
-  auto serr = recipe->init_srcinfo();
-  if (auto err = !serr) return *err;
-  fly::srcinfo &s = *(serr.success());
+void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
+                        bool &missing_pkg_error) {
+  /* check if recipe is already part of the list. this could happen in case of cyclic dependencies or if multiple
+   * requested packages have common dependencies. warning about cycle detection could be appropriate here.
+   */
+  for (auto &r : recipes)
+    if (r->working_name == recipe->working_name) return;
+
+  fly::srcinfo &s = recipe->init_srcinfo();
   for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 
-    auto recipe_makedepends = pkgbuild::New(pkg);
-    if (auto err = !recipe_makedepends) {
-      error("{}", *err);
+    optional<shared_ptr<pkgbuild>> recipe_makedepends = pkgbuild::New_opt(pkg);
+    if (!recipe_makedepends) {
+      error("makedepends package \"{}\" not found", pkg.c_str());
       missing_pkg_error = true;
     } else {
       add_recipe_to_list(recipes, *recipe_makedepends, pacman, missing_pkg_error);
@@ -298,25 +273,23 @@ xresult<void> add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_p
   for (auto &pkg : s.depends) {
     if (pacman.HasPackage(pkg)) continue;
 
-    auto recipe_depends = pkgbuild::New(pkg);
-    if (auto err = !recipe_depends) {
-      error("{}", *err);
+    optional<shared_ptr<pkgbuild>> recipe_depends = pkgbuild::New_opt(pkg);
+    if (!recipe_depends) {
+      error("depends package \"{}\" not found", pkg.c_str());
       missing_pkg_error = true;
     } else {
-      if (auto err = add_recipe_to_list(recipes, *recipe_depends, pacman, missing_pkg_error)) return *err;
+      add_recipe_to_list(recipes, *recipe_depends, pacman, missing_pkg_error);
     }
   }
 
   recipes.push_back(recipe);
-  return {};
 }
 
 namespace ymerge {
 
 const char *curated_url = "https://github.com/flying-dude/curated-aur";
 
-fly::xresult<void> sync(optional<path> git_dir_, optional<string> git_url_, optional<string> stdout,
-                        optional<string> stderr) {
+void sync(optional<path> git_dir_, optional<string> git_url_, optional<string> stdout, optional<string> stderr) {
   path git_dir = git_dir_ ? *git_dir_ : fly::git_dir;
   string git_url = git_url_ ? *git_url_ : curated_url;
 
@@ -326,25 +299,21 @@ fly::xresult<void> sync(optional<path> git_dir_, optional<string> git_url_, opti
 
   if (!exists(git_dir)) {
     create_directories(git_dir);
-    auto err = exec("git", "-C", cache_dir.c_str(), "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
-    if (err) return err;
+    exec("git", "-C", cache_dir.c_str(), "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
   } else {
     // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
     cmd_options opt_rev_parse;
     opt_rev_parse.stdout_file = "/dev/null";
-    if (auto err = exec_opt(opt_rev_parse, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree"))
-      return fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str());
+    bool result = exec_opt_bool(opt_rev_parse, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
+    if (!result) throw runtime_error(fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str()));
 
     // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
-    if (auto err = exec_opt(opt, "git", "-C", git_dir.c_str(), "fetch", "--depth", "1")) return err;
-
-    if (auto err = exec_opt(opt, "git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main")) return err;
+    exec_opt(opt, "git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
+    exec_opt(opt, "git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
 
     // is this even needed?
     // exec_opt(opt, "git", "-C", git_dir.c_str(), "clean", "-dfx");
   }
-
-  return nullopt;
 }
 
 }  // namespace ymerge

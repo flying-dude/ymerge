@@ -3,9 +3,10 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 
-#include <cmd.hpp>
 #include <sstream>
-#include <ymerge.hpp>
+
+#include "cmd.hpp"
+#include "ymerge.hpp"
 
 /** Logging functions based on fmtlib with optional colored output. */
 
@@ -96,7 +97,20 @@ FMT_INLINE void log(const fmt::text_style &ts, std::string_view prefix, fmt::for
 }
 
 template <typename... T>
-FMT_INLINE xresult<void> exec_opt(cmd_options opt, T &&...args) {
+FMT_INLINE void exec_opt(cmd_options opt, T &&...args) {
+  if (flag::quiet) {
+    // suppress stdout in --quiet mode. do not override, if an stdout location was explicitly specified tho.
+    if (!opt.stdout_file) opt.stdout_file = "/dev/null";
+  } else {
+    log(fmt::text_style(fg(fmt::color::deep_sky_blue) | fmt::emphasis::bold), "exec", "{}",
+        cmd2str(opt, args...).c_str());
+  }
+
+  cmd_opt(opt, args...);
+}
+
+template <typename... T>
+FMT_INLINE bool exec_opt_bool(cmd_options opt, T &&...args) {
   if (flag::quiet) {
     // suppress stdout in --quiet mode. do not override if an stdout location was already specified tho
     if (!opt.stdout_file) opt.stdout_file = "/dev/null";
@@ -105,12 +119,12 @@ FMT_INLINE xresult<void> exec_opt(cmd_options opt, T &&...args) {
         cmd2str(opt, args...).c_str());
   }
 
-  return cmd_opt(opt, args...);
+  return cmd_opt_bool(opt, args...);
 }
 
 template <typename... T>
-FMT_INLINE xresult<void> exec(T &&...args) {
-  return exec_opt({}, args...);
+FMT_INLINE void exec(T &&...args) {
+  exec_opt({}, args...);
 }
 
 }  // namespace fly

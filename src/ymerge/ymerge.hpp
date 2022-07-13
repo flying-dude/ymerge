@@ -3,16 +3,14 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 #include <optional>
-#include <xresult.hpp>
 
 namespace ymerge {
 
 extern const char* curated_url;
 
-extern fly::xresult<void> sync(std::optional<std::filesystem::path> git_dir = std::nullopt,
-                               std::optional<std::string> git_url = std::nullopt,
-                               std::optional<std::string> stdout = std::nullopt,
-                               std::optional<std::string> stderr = std::nullopt);
+extern void sync(std::optional<std::filesystem::path> git_dir = std::nullopt,
+                 std::optional<std::string> git_url = std::nullopt, std::optional<std::string> stdout = std::nullopt,
+                 std::optional<std::string> stderr = std::nullopt);
 
 }  // namespace ymerge
 
