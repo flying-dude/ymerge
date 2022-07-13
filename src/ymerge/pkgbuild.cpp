@@ -16,7 +16,7 @@ using namespace nlohmann;
 
 namespace fly {
 
-optional<shared_ptr<pkgbuild>> pkgbuild::New_opt(string pkg) {
+optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg) {
   if (pkg.ends_with("PKGBUILD")) {
     path PKGBUILD = absolute(path(pkg));
     if (!is_regular_file(PKGBUILD)) throw runtime_error(fmt::format("not a file: {}", PKGBUILD.c_str()));

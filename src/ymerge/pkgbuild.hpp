@@ -21,7 +21,7 @@ struct pkgbuild {
 
   pkgbuild(std::string working_name) : working_name(working_name) {}
   virtual ~pkgbuild(){};
-  static std::optional<std::shared_ptr<pkgbuild>> New_opt(std::string);  // factory function for abstract type
+  static std::optional<std::shared_ptr<pkgbuild>> New(std::string);  // factory function for abstract type
 
   std::filesystem::path init_build_dir();
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;

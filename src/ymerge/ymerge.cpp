@@ -89,21 +89,22 @@ bool ask(std::string question);
 void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
                         bool &missing_pkg_error);
 
-int main_throws(int argc, const char **argv);
+void main_throws(int argc, const char **argv);
 int main(int argc, const char **argv) {
   try {
-    return main_throws(argc, argv);
+    main_throws(argc, argv);
   } catch (const exception &err) {
-    error("{}", err.what());
+    string msg = err.what();
+    if (msg.length() > 0) error("{}", err.what());
     return 1;
   }
 }
 
 /// this is the actual main-function. it can throw exceptions, which need to be caught by the calling function.
-int main_throws(int argc, const char **argv) {
+void main_throws(int argc, const char **argv) {
   if (argc == 1) {
     cout << usage << endl;
-    return 0;
+    return;
   }
 
   unique_list<string> pkgs;
@@ -113,7 +114,7 @@ int main_throws(int argc, const char **argv) {
 
     if (arg == "-h" || arg == "--help") {
       cout << help << endl;
-      return 0;
+      return;
     } else if (arg == "--ask") {
       flag::confirm = true;
     } else if (arg == "--nocolor") {
@@ -143,7 +144,7 @@ int main_throws(int argc, const char **argv) {
       int j = 1;
       for (char c = arg_[j]; c != '\0'; c = arg_[++j]) {
         switch (c) {
-          case 'h': cout << help << endl; return 0;
+          case 'h': cout << help << endl; return;
           case 'q': flag::quiet = true; break;
           case 'r': flag::remove = true; break;
           case 's': flag::sync = true; break;
@@ -160,7 +161,7 @@ int main_throws(int argc, const char **argv) {
   // we don't exit on first error when parsing command line args but
   // report all errors that occured we -do- exit on error tho, which is
   // what we do here.
-  if (cli_error) return 1;
+  if (cli_error) throw std::invalid_argument("");
 
   /* print version, if requested. intentionally not exiting here. user is allowed to request
    * further actions, like installing packages, in one command. */
@@ -176,11 +177,11 @@ int main_throws(int argc, const char **argv) {
   if (flag::sync) ymerge::sync();
 
   // if no packages are requested for install, we are done at this point.
-  if (pkgs.v.empty()) return 0;
+  if (pkgs.v.empty()) return;
 
   if (flag::remove) {
     exec("sudo", "pacman", "--remove", pkgs.v);
-    return 0;
+    return;
   }
 
   if (!exists(git_dir)) {
@@ -189,8 +190,8 @@ int main_throws(int argc, const char **argv) {
 
     bool answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
 
-    // exit program if they don't want to sync. should we return 0 or 1 here tho?
-    if (answer == false) return 0;
+    // exit program if declined to perform sync. return error or not tho?
+    if (answer == false) return;
 
     // answer == yes
     ymerge::sync();
@@ -205,7 +206,7 @@ int main_throws(int argc, const char **argv) {
   vector<shared_ptr<pkgbuild>> recipes;
   bool missing_pkg_error = false;
   for (string &pkg : pkgs.v) {
-    optional<shared_ptr<pkgbuild>> recipe = pkgbuild::New_opt(pkg);
+    optional<shared_ptr<pkgbuild>> recipe = pkgbuild::New(pkg);
     if (!recipe) {
       error("package \"{}\" not found", pkg.c_str());
       missing_pkg_error = true;
@@ -214,7 +215,7 @@ int main_throws(int argc, const char **argv) {
     }
   }
 
-  if (missing_pkg_error) return 1;
+  if (missing_pkg_error) throw std::invalid_argument("");
 
   // TODO use shell colors to distinguish packages selected by the users from packages that are just dependencies
   std::cout << "About to compile and install the following package recipes:";
@@ -226,13 +227,13 @@ int main_throws(int argc, const char **argv) {
 
   bool answer = ask("Do you want to proceed?");
 
-  // exit program if they don't want to sync. should we return 0 or 1 here tho?
-  if (answer == false) return 0;
+  // exit program if decided to abort. return error or not tho?
+  if (answer == false) return;
 
   // answer == yes
   for (shared_ptr<pkgbuild> &recipe : recipes) { recipe->merge(); }
 
-  return 0;
+  return;
 }
 
 bool ask(string question) {
@@ -264,7 +265,7 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
   for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 
-    optional<shared_ptr<pkgbuild>> recipe_makedepends = pkgbuild::New_opt(pkg);
+    optional<shared_ptr<pkgbuild>> recipe_makedepends = pkgbuild::New(pkg);
     if (!recipe_makedepends) {
       error("makedepends package \"{}\" not found", pkg.c_str());
       missing_pkg_error = true;
@@ -276,7 +277,7 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
   for (auto &pkg : s.depends) {
     if (pacman.HasPackage(pkg)) continue;
 
-    optional<shared_ptr<pkgbuild>> recipe_depends = pkgbuild::New_opt(pkg);
+    optional<shared_ptr<pkgbuild>> recipe_depends = pkgbuild::New(pkg);
     if (!recipe_depends) {
       error("depends package \"{}\" not found", pkg.c_str());
       missing_pkg_error = true;
