@@ -34,7 +34,6 @@ extern bool version;
 namespace step {
 inline bool srcinfo() { return flag::srcinfo; }
 inline bool install() { return !flag::srcinfo && !flag::remove; }
-inline bool remove() { return flag::remove; }
 }  // namespace step
 
 extern std::filesystem::path cache_dir;

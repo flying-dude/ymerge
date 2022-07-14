@@ -228,18 +228,20 @@ void main_throws(int argc, const char **argv) {
 
   if (missing_pkg_error) throw std::invalid_argument("");
 
-  // TODO use shell colors to distinguish packages selected by the users from packages that are just dependencies
-  std::cout << "About to compile and install the following package recipes:";
-  for (auto it = recipes.begin(); it != recipes.end(); it++) {
-    std::string full_name = it->get()->full_name();
-    std::cout << " " << full_name;
+  if (step::install()) {
+    // TODO use shell colors to distinguish packages selected by the users from packages that are just dependencies
+    std::cout << "About to compile and install the following package recipes:";
+    for (auto it = recipes.begin(); it != recipes.end(); it++) {
+      std::string full_name = it->get()->full_name();
+      std::cout << " " << full_name;
+    }
+    std::cout << std::endl;
+
+    bool answer = ask("Do you want to proceed?");
+
+    // exit program if decided to abort. return error or not tho?
+    if (answer == false) return;
   }
-  std::cout << std::endl;
-
-  bool answer = ask("Do you want to proceed?");
-
-  // exit program if decided to abort. return error or not tho?
-  if (answer == false) return;
 
   // answer == yes
   for (shared_ptr<pkgbuild> &recipe : recipes) { recipe->merge(); }
