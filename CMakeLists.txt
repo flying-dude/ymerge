@@ -70,8 +70,10 @@ install(FILES extra/bash_completion
 )
 install(FILES extra/zsh_completion
     RENAME auracle
-    DESTINATION
-    ${CMAKE_INSTALL_DATADIR}/zsh/site-functions
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/zsh/site-functions
+)
+install(FILES extra/y
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 #find_program(
