@@ -14,8 +14,6 @@ else()
     add_definitions(-DYMERGE_VERSION="UNKNOWN_VERSION")
 endif()
 
-#option(BUILD_TESTS "Build tests" ON)
-
 option(ENABLE_SANITIZERS "Enable runtime sanitizing (for development)")
 if (ENABLE_SANITIZERS)
     message("Enabling asan and ubsan")
@@ -128,6 +126,7 @@ elseif(POD2MAN)
     message(WARNING "Failed to find pod2man, not generating manpage")
 endif(POD2MAN)
 
+option(BUILD_TESTS "Build tests")
 if (BUILD_TESTS)
     find_package(GTest REQUIRED COMPONENTS gtest_main gmock CONFIG)
     include(GoogleTest)
