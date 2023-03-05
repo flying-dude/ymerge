@@ -70,9 +70,6 @@ install(FILES extra/zsh_completion
     RENAME auracle
     DESTINATION ${CMAKE_INSTALL_DATADIR}/zsh/site-functions
 )
-install(PROGRAMS extra/y
-    DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
 
 #find_program(
 #    CLANG_TIDY_EXE
