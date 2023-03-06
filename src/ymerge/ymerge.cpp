@@ -307,13 +307,8 @@ namespace ymerge {
 
 const char *curated_url = "https://github.com/flying-dude/curated-aur";
 
-void sync(optional<path> git_dir_, optional<string> git_url_, optional<string> stdout, optional<string> stderr) {
-  path git_dir = git_dir_ ? *git_dir_ : fly::curated_aur_dir / "git";
-  string git_url = git_url_ ? *git_url_ : curated_url;
-
-  cmd_options opt;
-  opt.stdout_file = stdout;
-  opt.stderr_file = stderr;
+void sync() {
+  path git_dir = fly::curated_aur_dir / "git";
 
   if (!exists(git_dir)) {
     create_directories(git_dir);
@@ -324,6 +319,8 @@ void sync(optional<path> git_dir_, optional<string> git_url_, optional<string> s
     opt_rev_parse.stdout_file = "/dev/null";
     bool result = exec_opt_bool(opt_rev_parse, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
     if (!result) throw runtime_error(fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str()));
+
+    cmd_options opt;
 
     // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
     exec_opt(opt, "git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
