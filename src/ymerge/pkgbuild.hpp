@@ -28,7 +28,7 @@ struct pkgbuild {
   srcinfo& init_srcinfo();
 
   std::filesystem::path package_archive() {
-    return repo_dir / info_->pkgname / "-" / info_->pkgver / "-" / std::to_string(info_->pkgrel) /
+    return UNUSED_repo_dir / info_->pkgname / "-" / info_->pkgver / "-" / std::to_string(info_->pkgrel) /
            "-x86_64.pkg.tar.zst";
   }
 

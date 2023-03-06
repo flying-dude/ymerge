@@ -26,7 +26,7 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg) {
     return result;
   }
 
-  path recipe_dir = pkg_dir / pkg;
+  path recipe_dir = curated_aur_git_dir / "pkg" / pkg;
   if (exists(recipe_dir)) {
     shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg);
     return result;

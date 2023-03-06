@@ -78,9 +78,8 @@ bool version = false;
 }  // namespace flag
 
 path cache_dir;
-path git_dir;
-path pkg_dir;
-path repo_dir;
+path curated_aur_git_dir;
+path UNUSED_repo_dir; // FIXME currently unused and not initialized
 json whitelist;
 
 }  // namespace fly
@@ -177,8 +176,7 @@ void main_throws(int argc, const char **argv) {
   if (flag::version) { std::cout << "ymerge version: " YMERGE_VERSION << std::endl; }
 
   cache_dir = path(xdgCacheHome()) / "ymerge";
-  git_dir = cache_dir / "curated-aur";
-  pkg_dir = git_dir / "pkg";
+  curated_aur_git_dir = cache_dir / "repo" / "curated-aur" / "git";
 
   // TODO check if shell commands (like git) exist before using them
   // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
@@ -193,8 +191,8 @@ void main_throws(int argc, const char **argv) {
     return;
   }
 
-  if (!exists(git_dir)) {
-    fmt::print("Package dir \"{}\" not present.\n", pkg_dir.c_str());
+  if (!exists(curated_aur_git_dir)) {
+    fmt::print("Package dir \"{}\" not present.\n", (curated_aur_git_dir / "pkg").c_str());
     fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
 
     bool answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
@@ -206,7 +204,7 @@ void main_throws(int argc, const char **argv) {
     ymerge::sync();
   }
 
-  std::string whitelist_bytes = file_contents(git_dir / "aur-whitelist.json");
+  std::string whitelist_bytes = file_contents(curated_aur_git_dir / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
@@ -310,7 +308,7 @@ namespace ymerge {
 const char *curated_url = "https://github.com/flying-dude/curated-aur";
 
 void sync(optional<path> git_dir_, optional<string> git_url_, optional<string> stdout, optional<string> stderr) {
-  path git_dir = git_dir_ ? *git_dir_ : fly::git_dir;
+  path git_dir = git_dir_ ? *git_dir_ : fly::curated_aur_git_dir;
   string git_url = git_url_ ? *git_url_ : curated_url;
 
   cmd_options opt;
@@ -319,7 +317,7 @@ void sync(optional<path> git_dir_, optional<string> git_url_, optional<string> s
 
   if (!exists(git_dir)) {
     create_directories(git_dir);
-    exec("git", "-C", cache_dir.c_str(), "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
+    exec("git", "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
   } else {
     // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
     cmd_options opt_rev_parse;
