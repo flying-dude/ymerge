@@ -204,6 +204,12 @@ void main_throws(int argc, const char **argv) {
     ymerge::sync();
   }
 
+  // verify git commit before proceeding
+  bool verify_success = exec_opt_bool({}, "git", "-C", (curated_aur_dir / "git").c_str(), "verify-commit", "HEAD");
+  if (!verify_success) {
+      throw runtime_error("could not verify git commit.");
+  }
+
   std::string whitelist_bytes = file_contents(curated_aur_dir / "git" / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
 
@@ -306,9 +312,11 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
 namespace ymerge {
 
 const char *curated_url = "https://github.com/flying-dude/curated-aur";
+const char *allowed_signers = "dude@flyspace.dev ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qJsZ35FLI61AYNgb9y+3ZgOBJpr9ebFv8jgkDymPT";
 
 void sync() {
   path git_dir = fly::curated_aur_dir / "git";
+  path allowed_signers_file = fly::curated_aur_dir / "allowed_signers";
 
   if (!exists(git_dir)) {
     create_directories(git_dir);
@@ -320,14 +328,18 @@ void sync() {
     bool result = exec_opt_bool(opt_rev_parse, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
     if (!result) throw runtime_error(fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str()));
 
-    cmd_options opt;
-
     // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
-    exec_opt(opt, "git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
-    exec_opt(opt, "git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
+    exec("git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
+    exec("git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
 
     // is this even needed?
-    // exec_opt(opt, "git", "-C", git_dir.c_str(), "clean", "-dfx");
+    // exec("git", "-C", git_dir.c_str(), "clean", "-dfx");
+  }
+
+  if (!exists(allowed_signers_file)) {
+    exec("git", "-C", git_dir.c_str(), "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
+    std::ofstream out(allowed_signers_file);
+    out << allowed_signers << endl;
   }
 }
 
