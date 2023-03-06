@@ -38,7 +38,7 @@ inline bool install() { return !flag::srcinfo && !flag::remove; }
 
 extern std::filesystem::path cache_dir;
 extern std::filesystem::path UNUSED_repo_dir;
-extern std::filesystem::path curated_aur_git_dir;
+extern std::filesystem::path curated_aur_dir;
 extern nlohmann::json whitelist;
 
 }  // namespace fly

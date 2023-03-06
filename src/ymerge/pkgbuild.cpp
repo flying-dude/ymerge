@@ -16,23 +16,23 @@ using namespace nlohmann;
 
 namespace fly {
 
-optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg) {
-  if (pkg.ends_with("PKGBUILD")) {
-    path PKGBUILD = absolute(path(pkg));
+optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
+  if (pkg_name.ends_with("PKGBUILD")) {
+    path PKGBUILD = absolute(path(pkg_name));
     if (!is_regular_file(PKGBUILD)) throw runtime_error(fmt::format("not a file: {}", PKGBUILD.c_str()));
 
     path recipe_dir = PKGBUILD.parent_path();
-    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg);
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
     return result;
   }
 
-  path recipe_dir = curated_aur_git_dir / "pkg" / pkg;
+  path recipe_dir = curated_aur_dir / "git" / "pkg" / pkg_name;
   if (exists(recipe_dir)) {
-    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg);
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
     return result;
-  } else if (whitelist.contains(pkg)) {
-    string hash = whitelist[pkg];
-    shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg, hash);
+  } else if (whitelist.contains(pkg_name)) {
+    string hash = whitelist[pkg_name];
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg_name, hash);
     return result;
   } else {
     return nullopt;

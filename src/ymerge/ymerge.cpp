@@ -78,7 +78,7 @@ bool version = false;
 }  // namespace flag
 
 path cache_dir;
-path curated_aur_git_dir;
+path curated_aur_dir;
 path UNUSED_repo_dir; // FIXME currently unused and not initialized
 json whitelist;
 
@@ -176,7 +176,7 @@ void main_throws(int argc, const char **argv) {
   if (flag::version) { std::cout << "ymerge version: " YMERGE_VERSION << std::endl; }
 
   cache_dir = path(xdgCacheHome()) / "ymerge";
-  curated_aur_git_dir = cache_dir / "repo" / "curated-aur" / "git";
+  curated_aur_dir = cache_dir / "repo" / "curated-aur";
 
   // TODO check if shell commands (like git) exist before using them
   // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
@@ -191,8 +191,8 @@ void main_throws(int argc, const char **argv) {
     return;
   }
 
-  if (!exists(curated_aur_git_dir)) {
-    fmt::print("Package dir \"{}\" not present.\n", (curated_aur_git_dir / "pkg").c_str());
+  if (!exists(curated_aur_dir / "git")) {
+    fmt::print("Package dir \"{}\" not present.\n", (curated_aur_dir / "git" / "pkg").c_str());
     fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
 
     bool answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
@@ -204,7 +204,7 @@ void main_throws(int argc, const char **argv) {
     ymerge::sync();
   }
 
-  std::string whitelist_bytes = file_contents(curated_aur_git_dir / "aur-whitelist.json");
+  std::string whitelist_bytes = file_contents(curated_aur_dir / "git" / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
@@ -308,7 +308,7 @@ namespace ymerge {
 const char *curated_url = "https://github.com/flying-dude/curated-aur";
 
 void sync(optional<path> git_dir_, optional<string> git_url_, optional<string> stdout, optional<string> stderr) {
-  path git_dir = git_dir_ ? *git_dir_ : fly::curated_aur_git_dir;
+  path git_dir = git_dir_ ? *git_dir_ : fly::curated_aur_dir / "git";
   string git_url = git_url_ ? *git_url_ : curated_url;
 
   cmd_options opt;
