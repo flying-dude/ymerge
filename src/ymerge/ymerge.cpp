@@ -207,7 +207,7 @@ void main_throws(int argc, const char **argv) {
   // verify git commit before proceeding
   bool verify_success = exec_opt_bool({}, "git", "-C", (curated_aur_dir / "git").c_str(), "verify-commit", "HEAD");
   if (!verify_success) {
-      throw runtime_error("could not verify git commit.");
+    throw runtime_error("could not verify git commit.");
   }
 
   std::string whitelist_bytes = file_contents(curated_aur_dir / "git" / "aur-whitelist.json");
@@ -215,7 +215,13 @@ void main_throws(int argc, const char **argv) {
 
   auracle::Pacman pacman;
 
-  if (flag::update) todo("implement --update flag");
+  if (flag::update) {
+    todo("implement --update flag");
+    if (flag::confirm)
+      exec("sudo", "pacman", "--sync", "--sysupgrade");
+    else
+      exec("sudo", "pacman", "--noconfirm", "--sync", "--sysupgrade");
+  }
 
   // collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
   vector<shared_ptr<pkgbuild>> recipes;
@@ -315,6 +321,8 @@ const char *curated_url = "https://github.com/flying-dude/curated-aur";
 const char *allowed_signers = "dude@flyspace.dev ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qJsZ35FLI61AYNgb9y+3ZgOBJpr9ebFv8jgkDymPT";
 
 void sync() {
+  exec("sudo", "pacman", "--sync", "--refresh");
+
   path git_dir = fly::curated_aur_dir / "git";
   path allowed_signers_file = fly::curated_aur_dir / "allowed_signers";
 
