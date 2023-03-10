@@ -43,7 +43,6 @@ to install the package:
 
 ```
 wget https://raw.githubusercontent.com/flying-dude/curated-aur/main/pkg/ymerge/PKGBUILD
-sudo pacman --sync base-devel
 makepkg --syncdeps --install
 ymerge --help
 ```
