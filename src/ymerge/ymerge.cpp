@@ -79,7 +79,6 @@ bool version = false;
 
 path cache_dir;
 path curated_aur_dir;
-path UNUSED_repo_dir; // FIXME currently unused and not initialized
 json whitelist;
 
 }  // namespace fly

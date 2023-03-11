@@ -27,11 +27,6 @@ struct pkgbuild {
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;
   srcinfo& init_srcinfo();
 
-  std::filesystem::path package_archive() {
-    return UNUSED_repo_dir / info_->pkgname / "-" / info_->pkgver / "-" / std::to_string(info_->pkgrel) /
-           "-x86_64.pkg.tar.zst";
-  }
-
   // build package or return error message if something went wrong
   void merge();
 

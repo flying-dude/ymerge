@@ -35,7 +35,6 @@ inline bool install() { return !flag::srcinfo && !flag::remove; }
 }  // namespace step
 
 extern std::filesystem::path cache_dir;
-extern std::filesystem::path UNUSED_repo_dir;
 extern std::filesystem::path curated_aur_dir;
 extern nlohmann::json whitelist;
 
