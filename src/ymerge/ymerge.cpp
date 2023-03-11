@@ -14,6 +14,7 @@
 #include "pkgbuild.hpp"
 #include "unique_list.hpp"
 #include "xdgdirs.h"
+#include "create_temporary_file.hpp"
 
 /**
  * Package manager for the curated-aur. The command-line interface is inspired by Gentoo Portage:
@@ -77,8 +78,7 @@ bool verbose = false;
 bool version = false;
 }  // namespace flag
 
-path cache_dir;
-path curated_aur_dir;
+path curated_aur_dir = path("/") / "var" / "lib" / "ymerge" / "repo" / "curated-aur";
 json whitelist;
 
 }  // namespace fly
@@ -174,19 +174,13 @@ void main_throws(int argc, const char **argv) {
    * further actions, like installing packages, in one command. */
   if (flag::version) { std::cout << "ymerge version: " YMERGE_VERSION << std::endl; }
 
-  cache_dir = path(xdgCacheHome()) / "ymerge";
-  curated_aur_dir = cache_dir / "repo" / "curated-aur";
-
-  // TODO check if shell commands (like git) exist before using them
-  // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
-
   if (flag::sync) ymerge::sync();
 
   // if no packages are requested for install, we are done at this point.
   if (pkgs.v.empty()) return;
 
   if (flag::remove) {
-    exec("sudo", "pacman", "--remove", pkgs.v);
+    sudo("pacman", "--remove", pkgs.v);
     return;
   }
 
@@ -204,10 +198,8 @@ void main_throws(int argc, const char **argv) {
   }
 
   // verify git commit before proceeding
-  bool verify_success = exec_opt_bool({}, "git", "-C", (curated_aur_dir / "git").c_str(), "verify-commit", "HEAD");
-  if (!verify_success) {
-    throw runtime_error("could not verify git commit.");
-  }
+  exec_opt_throw("could not verify git commit.",
+    {}, "sudo", "git", "-C", (curated_aur_dir / "git").c_str(), "verify-commit", "HEAD");
 
   std::string whitelist_bytes = file_contents(curated_aur_dir / "git" / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
@@ -217,9 +209,9 @@ void main_throws(int argc, const char **argv) {
   if (flag::update) {
     todo("implement --update flag");
     if (flag::confirm)
-      exec("sudo", "pacman", "--sync", "--sysupgrade");
+      sudo("pacman", "--sync", "--sysupgrade", "--sysupgrade");
     else
-      exec("sudo", "pacman", "--noconfirm", "--sync", "--sysupgrade");
+      sudo("pacman", "--noconfirm", "--sync", "--sysupgrade", "--sysupgrade");
   }
 
   // collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
@@ -320,33 +312,40 @@ const char *curated_url = "https://github.com/flying-dude/curated-aur";
 const char *allowed_signers = "dude@flyspace.dev ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qJsZ35FLI61AYNgb9y+3ZgOBJpr9ebFv8jgkDymPT";
 
 void sync() {
-  exec("sudo", "pacman", "--sync", "--refresh");
+  sudo("pacman", "--sync", "--refresh");
 
   path git_dir = fly::curated_aur_dir / "git";
   path allowed_signers_file = fly::curated_aur_dir / "allowed_signers";
 
   if (!exists(git_dir)) {
-    create_directories(git_dir);
-    exec("git", "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
+    sudo("mkdir", "--parents", git_dir.c_str());
+    //sudo("git", "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
   } else {
     // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
     cmd_options opt_rev_parse;
     opt_rev_parse.stdout_file = "/dev/null";
-    bool result = exec_opt_bool(opt_rev_parse, "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
-    if (!result) throw runtime_error(fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str()));
+
+    exec_opt_throw(fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str()),
+      opt_rev_parse, "sudo", "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
 
     // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
-    exec("git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
-    exec("git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
-
-    // is this even needed?
-    // exec("git", "-C", git_dir.c_str(), "clean", "-dfx");
+    sudo("git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
+    sudo("git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
   }
 
   if (!exists(allowed_signers_file)) {
-    exec("git", "-C", git_dir.c_str(), "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
-    std::ofstream out(allowed_signers_file);
-    out << allowed_signers << endl;
+    {
+      auto tmpfile = temporary_file::New();
+
+      cout << "tmpfile: " << tmpfile << endl;
+      std::ofstream output(tmpfile->path);
+      output << allowed_signers;
+      output.close();
+
+      sudo("cp", tmpfile->path, allowed_signers_file);
+    }
+
+    sudo("git", "-C", git_dir.c_str(), "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
   }
 }
 

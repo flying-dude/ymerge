@@ -98,9 +98,9 @@ void pkgbuild::remove() {
   // when we remove a package we won't even init srcinfo. that means we have to use working_name instead of
   // srcinfo->pkgname, since that one is N/A. probably these two are (always?) identical anyway.
   if (flag::confirm)
-    exec("sudo", "pacman", "--remove", working_name);
+    sudo("pacman", "--remove", working_name);
   else
-    exec("sudo", "pacman", "--noconfirm", "--remove", working_name);
+    sudo("pacman", "--noconfirm", "--remove", working_name);
 }
 
 }  // namespace fly

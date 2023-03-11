@@ -111,7 +111,7 @@ FMT_INLINE void exec_opt(cmd_options opt, T &&...args) {
 }
 
 template <typename... T>
-FMT_INLINE bool exec_opt_bool(cmd_options opt, T &&...args) {
+FMT_INLINE void exec_opt_throw(std::string throw_msg, cmd_options opt, T &&...args) {
   if (flag::quiet) {
     // suppress stdout in --quiet mode. do not override if an stdout location was already specified tho
     if (!opt.stdout_file) opt.stdout_file = "/dev/null";
@@ -120,12 +120,31 @@ FMT_INLINE bool exec_opt_bool(cmd_options opt, T &&...args) {
         cmd2str(opt, args...).c_str());
   }
 
-  return cmd_opt_bool(opt, args...);
+  if(cmd_opt_bool(opt, args...) != 0)
+    throw std::runtime_error(throw_msg);
 }
 
 template <typename... T>
 FMT_INLINE void exec(T &&...args) {
   exec_opt({}, args...);
+}
+
+template <typename... T>
+FMT_INLINE void sudo_opt(cmd_options opt, T &&...args) {
+  if (flag::quiet) {
+    // suppress stdout in --quiet mode. do not override, if an stdout location was explicitly specified tho.
+    if (!opt.stdout_file) opt.stdout_file = "/dev/null";
+  } else {
+    log(fmt::text_style(fg(fmt::color::maroon) | fmt::emphasis::bold), "sudo", "{}",
+        cmd2str(opt, args...).c_str());
+  }
+
+  cmd_opt(opt, "sudo", args...);
+}
+
+template <typename... T>
+FMT_INLINE void sudo(T &&...args) {
+  sudo_opt({}, args...);
 }
 
 }  // namespace fly
