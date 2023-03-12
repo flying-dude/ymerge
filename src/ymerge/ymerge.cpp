@@ -41,11 +41,13 @@ Options:
     --help -h      print help
     --version -v   print version
 
+    --ask          ask before installing (default). this invalidates previous --yes
     --nocolor      turn off colors for produced shell output
     --quiet -q     minimize output
     --verbose      increase verbosity of output
     --yes -y       skip confirmation and pick default answers automatically
 
+    --makepkg      only create the package archive but do not install
     --pretend -p   show what would be done and exit
     --remove -r    remove (uninstall) packages
     --srcinfo      only print srcinfo but do not build
@@ -71,6 +73,7 @@ Version: )" YMERGE_VERSION;
 namespace flag {
 bool color = true;
 bool confirm = true;
+bool makepkg = false;
 bool pretend = false;
 bool quiet = false;
 bool remove = false;
@@ -120,6 +123,8 @@ void main_throws(int argc, const char **argv) {
       return;
     } else if (arg == "--ask") {
       flag::confirm = true;
+    } else if (arg == "--makepkg") {
+      flag::makepkg = true;
     } else if (arg == "--nocolor") {
       flag::color = false;
     } else if (arg == "--pretend") {

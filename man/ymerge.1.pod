@@ -31,7 +31,7 @@ Print which version of ymerge is installed on your computer.
 
 =item B<--ask>
 
-Override "--yes" to enable confirmation at decision points again. Default is to
+Override "--yes" to re-enable asking for confirmation before installing. Default is to
 always "--ask", if neither flag is specified.
 
 =item B<--nocolor>
@@ -61,6 +61,11 @@ automatically. Non-interactive usage suitable for shell scripting.
 =head1 PACKAGE OPTIONS
 
 =over 4
+
+=item B<--makepkg>
+
+Create the package archive and put into custom local repository but do not
+install with pacman.
 
 =item B<-r>, B<--remove>
 

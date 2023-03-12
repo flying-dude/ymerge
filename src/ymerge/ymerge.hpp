@@ -11,6 +11,7 @@ extern void sync();
 namespace flag {
 extern bool color;
 extern bool confirm;
+extern bool makepkg;
 extern bool pretend;
 extern bool quiet;
 extern bool remove;

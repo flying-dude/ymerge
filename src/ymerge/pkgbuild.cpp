@@ -107,6 +107,9 @@ void pkgbuild::install() {
   sudo("mv", *opt.working_dir / archive_name , build_dir);
   sudo("repo-add", curated_aur_repo.get_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
 
+  if (flag::makepkg)
+    return;
+
   if (flag::confirm)
     sudo("pacman", "--upgrade", build_dir / archive_name);
   else
