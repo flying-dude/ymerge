@@ -13,7 +13,6 @@
 #include "log.hpp"
 #include "pkgbuild.hpp"
 #include "unique_list.hpp"
-#include "xdgdirs.h"
 #include "create_temporary_file.hpp"
 #include "repo.hpp"
 

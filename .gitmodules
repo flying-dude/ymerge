@@ -1,3 +1,0 @@
-[submodule "src/submodules/libxdgdirs"]
-	path = src/submodules/libxdgdirs
-	url = https://github.com/Jorengarenar/libXDGdirs

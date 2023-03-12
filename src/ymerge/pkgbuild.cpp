@@ -119,7 +119,7 @@ void pkgbuild::remove() {
   if (flag::confirm)
     sudo("pacman", "--remove", working_name);
   else
-    sudo("pacman", "--noconfirm", "--remove", working_name);
+    sudo("pacman", "--remove", "--noconfirm", working_name);
 }
 
 }  // namespace ymerge
