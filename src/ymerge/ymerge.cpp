@@ -78,7 +78,7 @@ bool verbose = false;
 bool version = false;
 }  // namespace flag
 
-path curated_aur_dir = path("/") / "var" / "lib" / "ymerge" / "repo" / "curated-aur";
+path curated_aur_dir = path("/") / "var" / "lib" / "ymerge" / "git" / "curated-aur";
 json whitelist;
 
 }  // namespace fly
