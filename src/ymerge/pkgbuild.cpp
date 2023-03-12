@@ -88,10 +88,27 @@ void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 void pkgbuild::install() {
   cmd_options opt;
   opt.working_dir = init_build_dir();
+
   if (flag::confirm)
-    exec_opt(opt, "makepkg", "--syncdeps", "--install");
+    exec_opt(opt, "makepkg", "--syncdeps");
   else
-    exec_opt(opt, "makepkg", "--syncdeps", "--install", "--noconfirm");
+    exec_opt(opt, "makepkg", "--syncdeps", "--noconfirm");
+
+  string archive_name = (info_->pkgname + "-" + info_->pkgver
+                         + "-" + std::to_string(info_->pkgrel)
+                         + "-x86_64.pkg.tar.zst");
+
+  if(!std::filesystem::is_directory(custom_local_repo))
+    sudo("mkdir", "--parents", custom_local_repo);
+
+  sudo("mv", *opt.working_dir / archive_name , custom_local_repo);
+  sudo("repo-add", custom_local_repo / "curated-aur.db.tar", custom_local_repo / archive_name);
+  //sudo("pacman", "--sync", "--refresh");
+
+  /*if (flag::confirm)
+    sudo("pacman", "--upgrade", custom_local_repo / archive_name);
+  else
+    sudo("pacman", "--upgrade", "--noconfirm", custom_local_repo / archive_name);*/
 }
 
 void pkgbuild::remove() {

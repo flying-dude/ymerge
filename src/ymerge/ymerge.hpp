@@ -35,6 +35,7 @@ inline bool install() { return !flag::srcinfo && !flag::remove; }
 }  // namespace step
 
 extern std::filesystem::path curated_aur_dir;
+extern std::filesystem::path custom_local_repo;
 extern nlohmann::json whitelist;
 
 }  // namespace fly

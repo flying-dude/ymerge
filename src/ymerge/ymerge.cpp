@@ -79,6 +79,10 @@ bool version = false;
 }  // namespace flag
 
 path curated_aur_dir = path("/") / "var" / "lib" / "ymerge" / "git" / "curated-aur";
+
+// https://wiki.archlinux.org/title/Pacman/Tips_and_tricks#Custom_local_repository
+path custom_local_repo = path("/") / "var" / "lib" / "ymerge" / "repo" / "curated-aur";
+
 json whitelist;
 
 }  // namespace fly
@@ -312,6 +316,7 @@ const char *curated_url = "https://github.com/flying-dude/curated-aur";
 const char *allowed_signers = "dude@flyspace.dev ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qJsZ35FLI61AYNgb9y+3ZgOBJpr9ebFv8jgkDymPT";
 
 void sync() {
+  // TODO make sure custom local repo db exists before running pacman --sync
   sudo("pacman", "--sync", "--refresh");
 
   path git_dir = fly::curated_aur_dir / "git";
@@ -319,7 +324,7 @@ void sync() {
 
   if (!exists(git_dir)) {
     sudo("mkdir", "--parents", git_dir.c_str());
-    //sudo("git", "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
+    sudo("git", "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
   } else {
     // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
     cmd_options opt_rev_parse;

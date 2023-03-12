@@ -120,7 +120,7 @@ FMT_INLINE void exec_opt_throw(std::string throw_msg, cmd_options opt, T &&...ar
         cmd2str(opt, args...).c_str());
   }
 
-  if(cmd_opt_bool(opt, args...) != 0)
+  if(cmd_opt_return_value(opt, args...) != 0)
     throw std::runtime_error(throw_msg);
 }
 

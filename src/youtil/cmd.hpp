@@ -84,10 +84,10 @@ inline void cmd_opt(cmd_options opt, Argv... argv) {
 }
 
 template <typename... Argv>
-inline bool cmd_opt_bool(cmd_options opt, Argv... argv) {
+inline bool cmd_opt_return_value(cmd_options opt, Argv... argv) {
   std::vector<std::string> v;
   build_vector(v, argv...);
-  return exec_prog(v, opt) == 0;
+  return exec_prog(v, opt);
 }
 
 /// Execute a shell command with arguments.
