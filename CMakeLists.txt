@@ -71,18 +71,6 @@ install(FILES extra/zsh_completion
     DESTINATION ${CMAKE_INSTALL_DATADIR}/zsh/site-functions
 )
 
-#find_program(
-#    CLANG_TIDY_EXE
-#    NAMES "clang-tidy"
-#    DOC "Path to clang-tidy executable"
-#    )
-#if(CLANG_TIDY_EXE)
-#    set_target_properties(
-#        auracle PROPERTIES
-#        CXX_CLANG_TIDY "${DO_CLANG_TIDY}"
-#        )
-#endif()
-
 find_program(POD2MAN pod2man)
 function(add_manpage)
     set(options)
@@ -122,42 +110,3 @@ if(POD2MAN)
 elseif(POD2MAN)
     message(WARNING "Failed to find pod2man, not generating manpage")
 endif(POD2MAN)
-
-option(BUILD_TESTS "Build tests")
-if (BUILD_TESTS)
-    find_package(GTest REQUIRED COMPONENTS gtest_main gmock CONFIG)
-    include(GoogleTest)
-
-    enable_testing()
-
-    # Unit tests
-    file(GLOB libauracle_test_FILES src/test/auracle_test/* src/test/aur_test/*)
-    add_executable(libauracle_test ${libauracle_test_FILES})
-    target_include_directories(libauracle PUBLIC src/libauracle/auracle src/libauracle/aur)
-    target_link_libraries(libauracle_test GTest::gtest_main GTest::gmock libauracle)
-    gtest_discover_tests(libauracle_test)
-
-    # Integration tests
-    include(FindPythonInterp)
-    set(PYTHON_TESTS
-        "buildorder"
-        "clone"
-        "custom_format"
-        "info"
-        "outdated"
-        "raw_query"
-        "regex_search"
-        "search"
-        "show"
-        "sort"
-        "update"
-    )
-    foreach(TEST ${PYTHON_TESTS})
-        add_test(
-            NAME ${TEST}
-            COMMAND
-                ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_${TEST}.py"
-            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
-        )
-    endforeach()
-endif(BUILD_TESTS)

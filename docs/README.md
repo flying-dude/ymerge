@@ -1,4 +1,4 @@
-## How it Works
+# How it Works
 
 The `ymerge` tool operates on a set of curated packages maintained in a git
 [repository](https://github.com/flying-dude/curated-aur).
