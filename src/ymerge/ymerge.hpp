@@ -6,8 +6,6 @@
 
 namespace ymerge {
 
-extern const char* curated_url;
-
 extern void sync();
 
 namespace flag {

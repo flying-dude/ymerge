@@ -311,9 +311,6 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
 
 namespace ymerge {
 
-const char *curated_url = "https://github.com/flying-dude/curated-aur";
-const char *allowed_signers = "dude@flyspace.dev ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qJsZ35FLI61AYNgb9y+3ZgOBJpr9ebFv8jgkDymPT";
-
 void sync() {
   // need to make sure custom local repo db exists before running pacman --sync.
   for (repo& repo : get_repos()) {
