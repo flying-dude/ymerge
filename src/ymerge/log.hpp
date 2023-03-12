@@ -10,7 +10,7 @@
 
 /** Logging functions based on fmtlib with optional colored output. */
 
-namespace fly {
+namespace ymerge {
 
 // "color specifiers for different parts of the message"
 // https://github.com/fmtlib/fmt/issues/1100
@@ -98,7 +98,7 @@ FMT_INLINE void log(const fmt::text_style &ts, std::string_view prefix, fmt::for
 }
 
 template <typename... T>
-FMT_INLINE void exec_opt(cmd_options opt, T &&...args) {
+FMT_INLINE void exec_opt(fly::cmd_options opt, T &&...args) {
   if (flag::quiet) {
     // suppress stdout in --quiet mode. do not override, if an stdout location was explicitly specified tho.
     if (!opt.stdout_file) opt.stdout_file = "/dev/null";
@@ -111,7 +111,7 @@ FMT_INLINE void exec_opt(cmd_options opt, T &&...args) {
 }
 
 template <typename... T>
-FMT_INLINE void exec_opt_throw(std::string throw_msg, cmd_options opt, T &&...args) {
+FMT_INLINE void exec_opt_throw(std::string throw_msg, fly::cmd_options opt, T &&...args) {
   if (flag::quiet) {
     // suppress stdout in --quiet mode. do not override if an stdout location was already specified tho
     if (!opt.stdout_file) opt.stdout_file = "/dev/null";
@@ -130,7 +130,7 @@ FMT_INLINE void exec(T &&...args) {
 }
 
 template <typename... T>
-FMT_INLINE void sudo_opt(cmd_options opt, T &&...args) {
+FMT_INLINE void sudo_opt(fly::cmd_options opt, T &&...args) {
   if (flag::quiet) {
     // suppress stdout in --quiet mode. do not override, if an stdout location was explicitly specified tho.
     if (!opt.stdout_file) opt.stdout_file = "/dev/null";
@@ -147,4 +147,4 @@ FMT_INLINE void sudo(T &&...args) {
   sudo_opt({}, args...);
 }
 
-}  // namespace fly
+} // namespace ymerge

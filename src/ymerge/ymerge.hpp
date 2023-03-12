@@ -10,10 +10,6 @@ extern const char* curated_url;
 
 extern void sync();
 
-}  // namespace ymerge
-
-namespace fly {
-
 namespace flag {
 extern bool color;
 extern bool confirm;
@@ -38,4 +34,4 @@ extern std::filesystem::path curated_aur_dir;
 extern std::filesystem::path custom_local_repo;
 extern nlohmann::json whitelist;
 
-}  // namespace fly
+}  // namespace ymerge

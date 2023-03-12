@@ -12,11 +12,11 @@
 #include "srcinfo.hpp"
 #include "ymerge.hpp"
 
-namespace fly {
+namespace ymerge {
 
 /// A directory containing an Arch Linux PKGBUILD.
 struct pkgbuild {
-  std::optional<std::shared_ptr<temporary_directory>> build_dir_ = std::nullopt;
+  std::optional<std::shared_ptr<fly::temporary_directory>> build_dir_ = std::nullopt;
   std::string working_name;  // tentative name used before reading .SRCINFO
 
   pkgbuild(std::string working_name) : working_name(working_name) {}
@@ -62,4 +62,4 @@ struct pkgbuild_raw : pkgbuild {
   void init_build_dir(std::filesystem::path& build_dir);
 };
 
-}  // namespace fly
+}  // namespace ymerge

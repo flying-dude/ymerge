@@ -13,8 +13,9 @@
 using namespace std;
 using namespace std::filesystem;
 using namespace nlohmann;
+using namespace fly;
 
-namespace fly {
+namespace ymerge {
 
 optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
   if (pkg_name.ends_with("PKGBUILD")) {
@@ -120,4 +121,4 @@ void pkgbuild::remove() {
     sudo("pacman", "--noconfirm", "--remove", working_name);
 }
 
-}  // namespace fly
+}  // namespace ymerge

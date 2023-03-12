@@ -27,7 +27,10 @@ using namespace std;
 using namespace std::filesystem;
 using namespace nlohmann;
 
-namespace fly {
+using namespace ymerge;
+using namespace fly;
+
+namespace ymerge {
 
 const char *help = R"(Usage: ymerge [options] [pkg...]
 Version: )" YMERGE_VERSION R"(
@@ -85,7 +88,7 @@ path custom_local_repo = path("/") / "var" / "lib" / "ymerge" / "repo" / "curate
 
 json whitelist;
 
-}  // namespace fly
+}  // namespace ymerge
 
 using namespace auracle;
 using namespace fly;
@@ -282,7 +285,7 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
   for (auto &r : recipes)
     if (r->working_name == recipe->working_name) return;
 
-  fly::srcinfo &s = recipe->init_srcinfo();
+  srcinfo &s = recipe->init_srcinfo();
   for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 
@@ -319,12 +322,12 @@ void sync() {
   // TODO make sure custom local repo db exists before running pacman --sync
   sudo("pacman", "--sync", "--refresh");
 
-  path git_dir = fly::curated_aur_dir / "git";
-  path allowed_signers_file = fly::curated_aur_dir / "allowed_signers";
+  path git_dir = curated_aur_dir / "git";
+  path allowed_signers_file = curated_aur_dir / "allowed_signers";
 
   if (!exists(git_dir)) {
     sudo("mkdir", "--parents", git_dir.c_str());
-    sudo("git", "clone", "--depth", "1", "--", ymerge::curated_url, git_dir);
+    sudo("git", "clone", "--depth", "1", "--", curated_url, git_dir);
   } else {
     // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
     cmd_options opt_rev_parse;

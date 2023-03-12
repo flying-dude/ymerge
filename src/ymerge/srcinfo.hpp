@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace fly {
+namespace ymerge {
 
 struct optdepends_pair {
   std::string pkg_name;
@@ -34,4 +34,4 @@ struct srcinfo {
   std::string to_string();
 };
 
-}  // namespace fly
+}  // namespace ymerge

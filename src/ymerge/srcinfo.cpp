@@ -3,8 +3,9 @@
 #include <string_util.hpp>
 
 using namespace std;
+using namespace fly;
 
-namespace fly {
+namespace ymerge {
 
 srcinfo::srcinfo(string info) {
   auto lines = split(info, "\n");
@@ -103,4 +104,4 @@ string srcinfo::to_string() {
   return ss.str();
 }
 
-}  // namespace fly
+}  // namespace ymerge
