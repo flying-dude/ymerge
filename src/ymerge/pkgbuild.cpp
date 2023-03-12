@@ -9,6 +9,7 @@
 #include "file_contents.hpp"
 #include "log.hpp"
 #include "ymerge.hpp"
+#include "repo.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -27,7 +28,7 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
     return result;
   }
 
-  path recipe_dir = curated_aur_dir / "git" / "pkg" / pkg_name;
+  path recipe_dir = curated_aur_repo.get_path() / "git" / "pkg" / pkg_name;
   if (exists(recipe_dir)) {
     shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
     return result;
@@ -99,17 +100,17 @@ void pkgbuild::install() {
                          + "-" + std::to_string(info_->pkgrel)
                          + "-x86_64.pkg.tar.zst");
 
-  if(!std::filesystem::is_directory(custom_local_repo))
-    sudo("mkdir", "--parents", custom_local_repo);
+  path build_dir = curated_aur_repo.get_path() / "pkg";
+  if(!std::filesystem::is_directory(build_dir))
+    sudo("mkdir", "--parents", build_dir);
 
-  sudo("mv", *opt.working_dir / archive_name , custom_local_repo);
-  sudo("repo-add", custom_local_repo / "curated-aur.db.tar", custom_local_repo / archive_name);
-  //sudo("pacman", "--sync", "--refresh");
+  sudo("mv", *opt.working_dir / archive_name , build_dir);
+  sudo("repo-add", curated_aur_repo.get_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
 
-  /*if (flag::confirm)
-    sudo("pacman", "--upgrade", custom_local_repo / archive_name);
+  if (flag::confirm)
+    sudo("pacman", "--upgrade", build_dir / archive_name);
   else
-    sudo("pacman", "--upgrade", "--noconfirm", custom_local_repo / archive_name);*/
+    sudo("pacman", "--upgrade", "--noconfirm", build_dir / archive_name);
 }
 
 void pkgbuild::remove() {

@@ -4,5 +4,16 @@
 #include <filesystem>
 
 namespace ymerge {
-std::vector<std::filesystem::path> get_repos();
+
+struct repo;
+std::vector<repo> get_repos();
+extern repo curated_aur_repo;
+
+struct repo {
+  std::string name;
+
+  std::string get_name() { return name; }
+  std::filesystem::path get_path() { return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name; }
+};
+
 }

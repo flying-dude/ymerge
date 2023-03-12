@@ -15,6 +15,7 @@
 #include "unique_list.hpp"
 #include "xdgdirs.h"
 #include "create_temporary_file.hpp"
+#include "repo.hpp"
 
 /**
  * Package manager for the curated-aur. The command-line interface is inspired by Gentoo Portage:
@@ -80,11 +81,6 @@ bool update = false;
 bool verbose = false;
 bool version = false;
 }  // namespace flag
-
-path curated_aur_dir = path("/") / "var" / "lib" / "ymerge" / "git" / "curated-aur";
-
-// https://wiki.archlinux.org/title/Pacman/Tips_and_tricks#Custom_local_repository
-path custom_local_repo = path("/") / "var" / "lib" / "ymerge" / "repo" / "curated-aur";
 
 json whitelist;
 
@@ -191,8 +187,8 @@ void main_throws(int argc, const char **argv) {
     return;
   }
 
-  if (!exists(curated_aur_dir / "git")) {
-    fmt::print("Package dir \"{}\" not present.\n", (curated_aur_dir / "git" / "pkg").c_str());
+  if (!exists(curated_aur_repo.get_path() / "git")) {
+    fmt::print("Package dir \"{}\" not present.\n", (curated_aur_repo.get_path() / "git" / "pkg").c_str());
     fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
 
     bool answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
@@ -206,9 +202,9 @@ void main_throws(int argc, const char **argv) {
 
   // verify git commit before proceeding
   exec_opt_throw("could not verify git commit.",
-    {}, "sudo", "git", "-C", (curated_aur_dir / "git").c_str(), "verify-commit", "HEAD");
+    {}, "sudo", "git", "-C", (curated_aur_repo.get_path() / "git").c_str(), "verify-commit", "HEAD");
 
-  std::string whitelist_bytes = file_contents(curated_aur_dir / "git" / "aur-whitelist.json");
+  std::string whitelist_bytes = file_contents(curated_aur_repo.get_path() / "git" / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
@@ -319,11 +315,24 @@ const char *curated_url = "https://github.com/flying-dude/curated-aur";
 const char *allowed_signers = "dude@flyspace.dev ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qJsZ35FLI61AYNgb9y+3ZgOBJpr9ebFv8jgkDymPT";
 
 void sync() {
-  // TODO make sure custom local repo db exists before running pacman --sync
+  // need to make sure custom local repo db exists before running pacman --sync.
+  for (repo& repo : get_repos()) {
+    path pkg = repo.get_path() / "pkg";
+    path db = pkg / (repo.name + ".db.tar");
+
+    if (!is_directory(pkg)) {
+      sudo("mkdir", "--parents", pkg);
+    }
+
+    if (!exists(db)) {
+      sudo("repo-add", db);
+    }
+  }
+
   sudo("pacman", "--sync", "--refresh");
 
-  path git_dir = curated_aur_dir / "git";
-  path allowed_signers_file = curated_aur_dir / "allowed_signers";
+  path git_dir = curated_aur_repo.get_path() / "git";
+  path allowed_signers_file = curated_aur_repo.get_path() / "allowed_signers";
 
   if (!exists(git_dir)) {
     sudo("mkdir", "--parents", git_dir.c_str());

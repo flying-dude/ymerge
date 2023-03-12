@@ -1,10 +1,14 @@
 #include "repo.hpp"
 
+using namespace std;
+
 namespace ymerge {
 
-std::vector<std::filesystem::path> get_repos() {
-  std::vector<std::filesystem::path> result;
-  result.push_back(std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / "curated-aur");
+repo curated_aur_repo = {"curated-aur" };
+
+vector<repo> get_repos() {
+  vector<repo> result;
+  result.push_back( curated_aur_repo );
   return result;
 }
 
