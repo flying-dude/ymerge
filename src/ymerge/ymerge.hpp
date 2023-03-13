@@ -6,8 +6,6 @@
 
 namespace ymerge {
 
-extern void sync();
-
 namespace flag {
 extern bool color;
 extern bool confirm;
