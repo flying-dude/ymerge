@@ -29,11 +29,6 @@ Print which version of ymerge is installed on your computer.
 
 =over 4
 
-=item B<--ask>
-
-Override "--yes" to re-enable asking for confirmation before installing. Default is to
-always "--ask", if neither flag is specified.
-
 =item B<--nocolor>
 
 Turn off colored output.

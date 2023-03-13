@@ -41,7 +41,6 @@ Options:
     --help -h      print help
     --version -v   print version
 
-    --ask          ask before installing (default). this invalidates previous --yes
     --nocolor      turn off colors for produced shell output
     --quiet -q     minimize output
     --verbose      increase verbosity of output
@@ -121,8 +120,6 @@ void main_throws(int argc, const char **argv) {
     if (arg == "-h" || arg == "--help") {
       cout << help << endl;
       return;
-    } else if (arg == "--ask") {
-      flag::confirm = true;
     } else if (arg == "--makepkg") {
       flag::makepkg = true;
     } else if (arg == "--nocolor") {
