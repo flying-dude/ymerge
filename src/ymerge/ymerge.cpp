@@ -179,6 +179,15 @@ void main_throws(int argc, const char **argv) {
 
   if (flag::sync) ymerge::sync();
 
+  if (flag::update) {
+    if (flag::confirm)
+      sudo("pacman", "--sync", "--sysupgrade", "--sysupgrade");
+    else
+      sudo("pacman", "--noconfirm", "--sync", "--sysupgrade", "--sysupgrade");
+
+    todo("implement --update flag");
+  }
+
   // if no packages are requested for install, we are done at this point.
   if (pkgs.v.empty()) return;
 
@@ -208,14 +217,6 @@ void main_throws(int argc, const char **argv) {
   whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
-
-  if (flag::update) {
-    todo("implement --update flag");
-    if (flag::confirm)
-      sudo("pacman", "--sync", "--sysupgrade", "--sysupgrade");
-    else
-      sudo("pacman", "--noconfirm", "--sync", "--sysupgrade", "--sysupgrade");
-  }
 
   // collect requested pkgbuilds. this could fail if user has specified a package that doesn't exist.
   vector<shared_ptr<pkgbuild>> recipes;

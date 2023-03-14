@@ -49,17 +49,14 @@ void sync() {
   }
 
   if (!exists(allowed_signers_file)) {
-    {
-      auto tmpfile = temporary_file::New();
+    auto tmpfile = temporary_file::New();
 
-      cout << "tmpfile: " << tmpfile << endl;
-      std::ofstream output(tmpfile->path);
-      output << allowed_signers;
-      output.close();
+    cout << "tmpfile: " << tmpfile << endl;
+    std::ofstream output(tmpfile->path);
+    output << allowed_signers;
+    output.close();
 
-      sudo("cp", tmpfile->path, allowed_signers_file);
-    }
-
+    sudo("cp", tmpfile->path, allowed_signers_file);
     sudo("git", "-C", git_dir.c_str(), "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
   }
 }
