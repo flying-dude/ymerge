@@ -59,7 +59,7 @@ struct formatter<absl::Time> {
   }
 
   auto format(const absl::Time t, fmt::format_context& ctx) {
-    return format_to(ctx.out(), "{}",
+    return fmt::format_to(ctx.out(), "{}",
                      absl::FormatTime(tm_format, t, absl::LocalTimeZone()));
   }
 
@@ -159,7 +159,8 @@ void Long(const aur::Package& package,
         fmt::format(" [installed: {}]", local_ver_color(l->pkgver()));
   }
 
-  fmt::print("{}", Field("Repository", t::BoldMagenta("aur")));
+  // TODO fix broken code below
+  /*fmt::print("{}", Field("Repository", t::BoldMagenta("aur")));
   fmt::print("{}", Field("Name", p.name));
   fmt::print("{}", Field("Version", ood_color(p.version) + installed_package));
 
@@ -191,7 +192,7 @@ void Long(const aur::Package& package,
     fmt::print("{}", Field("Out of Date", p.out_of_date));
   }
   fmt::print("{}", Field("Description", p.description));
-  fmt::print("\n");
+  fmt::print("\n");*/
 }
 
 void Update(const alpm::pkg& from, const aur::Package& to) {
@@ -206,6 +207,10 @@ namespace {
 void FormatCustomTo(std::string& out, std::string_view format,
                     const aur::Package& package) {
   throw std::runtime_error("function \"FormatCustomTo()\" turned off due to errors in migration from C++17 -> C++ 20");
+  /* possible solution:
+   * https://www.reddit.com/r/cpp/comments/vuhmsl/c_i_wrote_a_simple_and_fast_formatting_library/
+   * https://github.com/xeerx/fstring
+   */
   // clang-format off
   /* fmt::format_to(
       std::back_inserter(out), format,
