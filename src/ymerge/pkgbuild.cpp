@@ -1,108 +1,128 @@
+#include "pkgbuild.hpp"
+
 #include <filesystem>
 #include <fstream>
-
 #include <nlohmann/json.hpp>
 
-#include <cmd.hpp>
-#include <create_temporary_directory.hpp>
-#include <file_contents.hpp>
-#include <log.hpp>
-#include <pkgbuild.hpp>
-#include <ymerge.hpp>
+#include "cmd.hpp"
+#include "create_temporary_directory.hpp"
+#include "file_contents.hpp"
+#include "log.hpp"
+#include "ymerge.hpp"
+#include "repo.hpp"
 
 using namespace std;
 using namespace std::filesystem;
 using namespace nlohmann;
+using namespace fly;
 
-namespace fly {
+namespace ymerge {
 
-xresult<shared_ptr<pkgbuild>> pkgbuild::New(string pkg) {
-	if (pkg.ends_with("PKGBUILD")) {
-		path PKGBUILD = absolute(path(pkg));
-		if (!is_regular_file(PKGBUILD)) return fail(fmt::format("not a file: {}", PKGBUILD.c_str()));
+optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
+  if (pkg_name.ends_with("PKGBUILD")) {
+    path PKGBUILD = absolute(path(pkg_name));
+    if (!is_regular_file(PKGBUILD)) throw runtime_error(fmt::format("not a file: {}", PKGBUILD.c_str()));
 
-		path recipe_dir = PKGBUILD.parent_path();
-		shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg);
-		return result;
-	}
+    path recipe_dir = PKGBUILD.parent_path();
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
+    return result;
+  }
 
-	path recipe_dir = pkg_dir / pkg;
-	if (exists(recipe_dir)) {
-		shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg);
-		return result;
-	} else if (whitelist.contains(pkg)) {
-		string hash = whitelist[pkg];
-		shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg, hash);
-		return result;
-	} else {
-		return fail(fmt::format("package \"{}\" not found", pkg));
-	}
+  path recipe_dir = curated_aur_repo.get_path() / "git" / "pkg" / pkg_name;
+  if (exists(recipe_dir)) {
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
+    return result;
+  } else if (whitelist.contains(pkg_name)) {
+    string hash = whitelist[pkg_name];
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg_name, hash);
+    return result;
+  } else {
+    return nullopt;
+  }
 }
 
-optional<string> pkgbuild::merge() {
-	auto tmp_ = temporary_directory::New(fmt::format("ymerge-{}_", working_name));
-	if (auto err = !tmp_) return *err;
-	build_dir = tmp_->path;
-	info("build dir: {}", build_dir->c_str());
+path pkgbuild::init_build_dir() {
+  if (build_dir_.has_value()) return build_dir_.value()->path;
 
-	if (step::srcinfo() || step::install()) {
-		if (auto err = init_build_dir()) return *err;
-		if (auto err = init_srcinfo()) return *err;
-	}
-
-	if (step::srcinfo()) print_srcinfo();
-
-	if (step::install())
-		if (auto err = install()) return *err;
-
-	if (step::remove())
-		if (auto err = remove()) return *err;
-
-	return {};
+  build_dir_ = temporary_directory::New(fmt::format("ymerge-{}_", working_name));
+  init_build_dir(build_dir_.value()->path);
+  return build_dir_.value()->path;
 }
 
-xresult<void> pkgbuild_aur::init_build_dir() {
-	auto url = fmt::format("https://aur.archlinux.org/{}.git", working_name);
-	if (auto err = git("clone", url, *build_dir)) {
-		return *err;
-	} else {
-		// https://stackoverflow.com/questions/3489173/how-to-clone-git-repository-with-specific-revision-changeset
-		return git("-C", *build_dir, "reset", "--hard", git_hash);
-	}
+void pkgbuild::merge() {
+  path build_dir = init_build_dir();
+  info("build dir: {}", build_dir.c_str());
+
+  if (step::srcinfo() || step::install()) init_srcinfo();
+  if (step::srcinfo()) print_srcinfo();
+  if (step::install()) install();
 }
 
-xresult<void> pkgbuild_raw::init_build_dir() {
-	return exec("cp", "--recursive", "--no-target-directory", pkg_folder, *build_dir);
+void pkgbuild_aur::init_build_dir(std::filesystem::path& build_dir) {
+  auto url = fmt::format("https://aur.archlinux.org/{}.git", working_name);
+  exec("git", "clone", url, build_dir);
+  exec("git", "-C", build_dir, "reset", "--hard", git_hash);
 }
 
-xresult<void> pkgbuild::init_srcinfo() {
-	auto file = *build_dir / ".SRCINFO";
-	if (!exists(file)) {
-		cmd_options opt;
-		opt.working_dir = *build_dir;
-		opt.stdout_file = file;
-		if (auto err = exec_opt(opt, "makepkg", "--printsrcinfo")) return *err;
-	}
+void pkgbuild_raw::init_build_dir(std::filesystem::path& build_dir) {
+  exec("cp", "--recursive", "--no-target-directory", pkg_folder, build_dir);
+}
 
-	auto data = file_contents(file);
-	if (auto err = !data) return *err;
-	info_ = *data;
-	return {};
+srcinfo& pkgbuild::init_srcinfo() {
+  if (info_.has_value()) return info_.value();
+
+  path build_dir = init_build_dir();
+  path file = build_dir / ".SRCINFO";
+  if (!exists(file)) {
+    cmd_options opt;
+    opt.working_dir = build_dir;
+    opt.stdout_file = file;
+    exec_opt(opt, "makepkg", "--printsrcinfo");
+  }
+
+  info_ = file_contents(file);
+  return *info_;
 }
 
 void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 
 // this will actually install the package using pacman
-xresult<void> pkgbuild::install() {
-	cmd_options opt;
-	opt.working_dir = *build_dir;
-	return exec_opt(opt, "makepkg", "--syncdeps", "--install");
+void pkgbuild::install() {
+  cmd_options opt;
+  opt.working_dir = init_build_dir();
+
+  if (flag::confirm)
+    exec_opt(opt, "makepkg", "--syncdeps");
+  else
+    exec_opt(opt, "makepkg", "--syncdeps", "--noconfirm");
+
+  string archive_name = (info_->pkgname + "-" + info_->pkgver
+                         + "-" + std::to_string(info_->pkgrel)
+                         + "-x86_64.pkg.tar.zst");
+
+  path build_dir = curated_aur_repo.get_path() / "pkg";
+  if(!std::filesystem::is_directory(build_dir))
+    sudo("mkdir", "--parents", build_dir);
+
+  sudo("mv", *opt.working_dir / archive_name , build_dir);
+  sudo("repo-add", curated_aur_repo.get_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
+
+  if (flag::makepkg)
+    return;
+
+  if (flag::confirm)
+    sudo("pacman", "--upgrade", build_dir / archive_name);
+  else
+    sudo("pacman", "--upgrade", "--noconfirm", build_dir / archive_name);
 }
 
-xresult<void> pkgbuild::remove() {
-	// when we remove we won't even init srcinfo. that means we use working_name instead of
-	// srcinfo->pkgname. probably these two are always identical anyway.
-	return exec("sudo", "pacman", "--remove", working_name);
+void pkgbuild::remove() {
+  // when we remove a package we won't even init srcinfo. that means we have to use working_name instead of
+  // srcinfo->pkgname, since that one is N/A. probably these two are (always?) identical anyway.
+  if (flag::confirm)
+    sudo("pacman", "--remove", working_name);
+  else
+    sudo("pacman", "--remove", "--noconfirm", working_name);
 }
 
-} // namespace fly
+}  // namespace ymerge

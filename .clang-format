@@ -1,14 +1,8 @@
 # https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 ---
 Language: Cpp
-
-SortIncludes: CaseSensitive
-NamespaceIndentation: Inner
+BasedOnStyle: Google # https://google.github.io/styleguide/cppguide.html
 ColumnLimit: 120
-
-TabWidth: 8
-IndentWidth: 8
-UseTab: ForIndentation
 
 # "Fixed one-line if statement" https://reviews.llvm.org/D37140
 AllowShortBlocksOnASingleLine: true

@@ -1,11 +1,13 @@
+**[Docs](docs/README.md) - [Packages](https://github.com/flying-dude/curated-aur)**
+
 # ymerge
 
-A Source-Based Package Manager for Arch Linux.
+An AUR Helper and Source-Based Package Manager for Arch Linux.
 
 ```
 Usage: ymerge [options] [pkg...]
 
-A Source-Based Package Manager for Arch Linux.
+An AUR Helper and Source-Based Package Manager for Arch Linux.
 
 Options:
     --help -h             print help
@@ -20,6 +22,9 @@ Options:
 Examples:
     Update the package database:
     $ ymerge --sync
+
+    Update the the package manager:
+    $ ymerge --sync ymerge
 
     Install the "xmake" and "build2" packages:
     $ ymerge xmake build2
@@ -38,7 +43,6 @@ to install the package:
 
 ```
 wget https://raw.githubusercontent.com/flying-dude/curated-aur/main/pkg/ymerge/PKGBUILD
-sudo pacman --sync base-devel
 makepkg --syncdeps --install
 ymerge --help
 ```

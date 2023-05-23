@@ -6,9 +6,6 @@
 #include <random>
 #include <string>
 
-#include <xresult.hpp>
-#include <ymerge.hpp>
-
 namespace fly {
 
 #define TMP_PREFIX "cpp-tmp_"
@@ -17,8 +14,7 @@ namespace fly {
  * Create a temporary directory in std::temp_directory_path() folder. Name is randomly generated
  * with given string prefix.
  */
-xresult<std::filesystem::path> create_temporary_directory(std::string prefix = TMP_PREFIX,
-                                                          unsigned long long max_tries = 1000);
+std::filesystem::path create_temporary_directory(std::string prefix = TMP_PREFIX, unsigned long long max_tries = 1000);
 
 /**
  * A type for temp dirs that will auto-create in constructor and auto-delete the dir in destructor.
@@ -31,14 +27,14 @@ xresult<std::filesystem::path> create_temporary_directory(std::string prefix = T
  * been called. Therefore, calling ::Delete() multiple times is completely safe.
  */
 struct temporary_directory {
-	std::filesystem::path path;
-	bool deleted = false;
+  std::filesystem::path path;
+  bool deleted = false;
 
-	static xresult<std::shared_ptr<temporary_directory>> New(std::string prefix = TMP_PREFIX);
-	xresult<void> Delete();
+  static std::shared_ptr<temporary_directory> New(std::string prefix = TMP_PREFIX);
+  void Delete();
 
-	temporary_directory(std::filesystem::path path) : path(path) {}
-	~temporary_directory() { Delete(); }
+  temporary_directory(std::filesystem::path path) : path(path) {}
+  ~temporary_directory() { Delete(); }
 };
 
-} // namespace fly
+}  // namespace fly

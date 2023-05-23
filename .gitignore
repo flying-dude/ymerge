@@ -1,1 +1,9 @@
+/pacman
+/auracle
+
 CMakeLists.txt.user
+build/
+subprojects/*/
+
+# unit tests have python scripts that generate __pycache__
+__pycache__

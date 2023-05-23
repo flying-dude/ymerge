@@ -14,4 +14,4 @@ std::vector<std::string> split(std::string_view str, std::string_view delim);
 /// Strip leading and trailing whitespace from the string.
 std::string strip(std::string_view inpt);
 
-} // namespace fly
+}  // namespace fly
