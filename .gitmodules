@@ -1,0 +1,6 @@
+[submodule "submodules/pacman"]
+	path = submodules/pacman
+	url = https://github.com/flying-dude/pacman
+[submodule "submodules/auracle"]
+	path = submodules/auracle
+	url = https://github.com/flying-dude/auracle

@@ -35,7 +35,7 @@ include(GNUInstallDirs)
 include_directories(src/libauracle)
 include_directories(src/youtil)
 include_directories(src/ymerge)
-include_directories(auracle/src)
+include_directories(submodules/auracle/src)
 
 file(GLOB_RECURSE ymerge_FILES src/ymerge/*)
 add_executable(ymerge ${ymerge_FILES})
@@ -44,10 +44,10 @@ target_link_libraries(ymerge libauracle youtil)
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})
 
-add_executable(auracle auracle/src/auracle_main.cc)
+add_executable(auracle submodules/auracle/src/auracle_main.cc)
 target_link_libraries(auracle absl::container_common absl::strings libauracle)
 
-file(GLOB_RECURSE libauracle_FILES src/libauracle/* auracle/src/auracle/* auracle/src/aur/*)
+file(GLOB_RECURSE libauracle_FILES src/libauracle/* submodules/auracle/src/auracle/* submodules/auracle/src/aur/*)
 add_library(libauracle SHARED ${libauracle_FILES})
 set_target_properties(libauracle PROPERTIES PREFIX "")
 target_link_libraries(libauracle
@@ -61,8 +61,8 @@ target_link_libraries(libauracle
     absl::time
 )
 
-file(GLOB_RECURSE yman_FILES pacman/src/pacman/*)
-list(REMOVE_ITEM yman_FILES ${CMAKE_CURRENT_SOURCE_DIR}/pacman/src/pacman/pacman-conf.c)
+file(GLOB_RECURSE yman_FILES submodules/pacman/src/pacman/*)
+list(REMOVE_ITEM yman_FILES ${CMAKE_CURRENT_SOURCE_DIR}/submodules/pacman/src/pacman/pacman-conf.c)
 add_executable(yman ${yman_FILES})
 find_package(LibArchive REQUIRED)
 target_link_libraries(yman
