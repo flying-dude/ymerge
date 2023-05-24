@@ -20,24 +20,25 @@ namespace ymerge {
 
 optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
   // read PKGBUILD file (this should be explicit and in a separate function!)
-  if (pkg_name.ends_with("PKGBUILD")) {
+  // TODO is this code ever used?
+  /*if (pkg_name.ends_with("PKGBUILD")) {
     path PKGBUILD = absolute(path(pkg_name));
     if (!is_regular_file(PKGBUILD)) throw runtime_error(fmt::format("not a file: {}", PKGBUILD.c_str()));
 
     path recipe_dir = PKGBUILD.parent_path();
-    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
+    shared_ptr<pkgbuild> result = make_shared<pkgbuild_ymerge>(recipe_dir, ymerge_repo, pkg_name);
     return result;
-  }
+  }*/
 
   // read PKGBUILD file from available git repos
   for (auto& r : config::get_repos()) {
     path recipe_dir = r.get_data_path() / "git" / "pkg" / pkg_name;
     if (exists(recipe_dir)) {
-      shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
+      shared_ptr<pkgbuild> result = make_shared<pkgbuild_ymerge>(recipe_dir, r, pkg_name);
       return result;
     } else if (whitelist.contains(pkg_name)) {
       string hash = whitelist[pkg_name];
-      shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg_name, hash);
+      shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(r, pkg_name, hash);
       return result;
     }
   }
@@ -69,7 +70,7 @@ void pkgbuild_aur::init_build_dir(std::filesystem::path& build_dir) {
   exec("git", "-C", build_dir, "reset", "--hard", git_hash);
 }
 
-void pkgbuild_raw::init_build_dir(std::filesystem::path& build_dir) {
+void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
   exec("cp", "--recursive", "--no-target-directory", pkg_folder, build_dir);
 }
 
@@ -104,11 +105,11 @@ void pkgbuild::install() {
   string archive_name =
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
 
-  path build_dir = config::curated_aur_repo.get_data_path() / "pkg";
+  path build_dir = ymerge_repo.get_data_path() / "pkg";
   if (!std::filesystem::is_directory(build_dir)) sudo("mkdir", "--parents", build_dir);
 
   sudo("mv", *opt.working_dir / archive_name, build_dir);
-  sudo("repo-add", config::curated_aur_repo.get_data_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
+  sudo("repo-add", ymerge_repo.get_data_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
 
   if (flag::makepkg) return;
 
