@@ -11,7 +11,7 @@ FMT_INLINE void nspawn(T &&...args) {
   fly::cmd_options opt;
   exec_print(opt, fmt::color::medium_aquamarine, "nspawn", args...);
   todo("implement nspawn(T &&...args)");
-  //cmd_opt(opt, "sudo", "chroot", chroot_dir, args...);
+  // cmd_opt(opt, "sudo", "chroot", chroot_dir, args...);
 }
 
-}
+}  // namespace ymerge

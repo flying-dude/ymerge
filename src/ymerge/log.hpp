@@ -98,13 +98,12 @@ FMT_INLINE void log(const fmt::text_style &ts, std::string_view prefix, fmt::for
 }
 
 template <typename... T>
-FMT_INLINE void exec_print(fly::cmd_options& opt, fmt::color color, std::string prefix, T &&...args) {
+FMT_INLINE void exec_print(fly::cmd_options &opt, fmt::color color, std::string prefix, T &&...args) {
   if (flag::quiet) {
     // suppress stdout in --quiet mode. do not override, if an stdout location was explicitly specified tho.
     if (!opt.stdout_file) opt.stdout_file = "/dev/null";
   } else {
-    log(fmt::text_style(fg(color) | fmt::emphasis::bold), prefix, "{}",
-        cmd2str(opt, args...).c_str());
+    log(fmt::text_style(fg(color) | fmt::emphasis::bold), prefix, "{}", cmd2str(opt, args...).c_str());
   }
 }
 
@@ -114,7 +113,6 @@ FMT_INLINE void exec_opt(fly::cmd_options opt, T &&...args) {
   cmd_opt(opt, args...);
 }
 
-
 /**
  *  execute command and throw the specified error message, if the command exits with non-zero
  *  exit code.
@@ -122,8 +120,7 @@ FMT_INLINE void exec_opt(fly::cmd_options opt, T &&...args) {
 template <typename... T>
 FMT_INLINE void exec_opt_throw(std::string throw_msg, fly::cmd_options opt, T &&...args) {
   exec_print(opt, fmt::color::deep_sky_blue, "exec", args...);
-  if(cmd_opt_return_value(opt, args...) != 0)
-    throw std::runtime_error(throw_msg);
+  if (cmd_opt_return_value(opt, args...) != 0) throw std::runtime_error(throw_msg);
 }
 
 template <typename... T>
@@ -142,4 +139,4 @@ FMT_INLINE void sudo(T &&...args) {
   sudo_opt({}, args...);
 }
 
-} // namespace ymerge
+}  // namespace ymerge

@@ -5,11 +5,11 @@
 #include <nlohmann/json.hpp>
 
 #include "cmd.hpp"
+#include "config.hpp"
 #include "create_temporary_directory.hpp"
 #include "file_contents.hpp"
 #include "log.hpp"
 #include "ymerge.hpp"
-#include "config.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -101,19 +101,16 @@ void pkgbuild::install() {
   else
     exec_opt(opt, "makepkg", "--syncdeps", "--noconfirm");
 
-  string archive_name = (info_->pkgname + "-" + info_->pkgver
-                         + "-" + std::to_string(info_->pkgrel)
-                         + "-x86_64.pkg.tar.zst");
+  string archive_name =
+      (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
 
   path build_dir = config::curated_aur_repo.get_data_path() / "pkg";
-  if(!std::filesystem::is_directory(build_dir))
-    sudo("mkdir", "--parents", build_dir);
+  if (!std::filesystem::is_directory(build_dir)) sudo("mkdir", "--parents", build_dir);
 
-  sudo("mv", *opt.working_dir / archive_name , build_dir);
+  sudo("mv", *opt.working_dir / archive_name, build_dir);
   sudo("repo-add", config::curated_aur_repo.get_data_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
 
-  if (flag::makepkg)
-    return;
+  if (flag::makepkg) return;
 
   if (flag::confirm)
     sudo("pacman", "--upgrade", build_dir / archive_name);

@@ -8,14 +8,17 @@
 #include <string>
 #include <vector>
 
+#include "config.hpp"
 #include "create_temporary_directory.hpp"
 #include "srcinfo.hpp"
-#include "ymerge.hpp"
 
 namespace ymerge {
 
 /// A directory containing an Arch Linux PKGBUILD.
 struct pkgbuild {
+  // the ymerge repo from which this PKGBUILD comes
+  config::ymerge_repo ymerge_repo;
+
   std::optional<std::shared_ptr<fly::temporary_directory>> build_dir_ = std::nullopt;
   std::string working_name;  // tentative name used before reading .SRCINFO
 

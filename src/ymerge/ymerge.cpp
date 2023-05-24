@@ -8,12 +8,12 @@
 
 #include "auracle/auracle.hh"
 #include "cmd.hpp"
+#include "config.hpp"
 #include "file_contents.hpp"
 #include "log.hpp"
 #include "pkgbuild.hpp"
-#include "unique_list.hpp"
-#include "config.hpp"
 #include "sync.hpp"
+#include "unique_list.hpp"
 
 /**
  * Package manager for the curated-aur. The command-line interface is inspired by Gentoo Portage:
@@ -210,8 +210,8 @@ void main_throws(int argc, const char **argv) {
   }
 
   // verify git commit before proceeding
-  exec_opt_throw("could not verify git commit.",
-    {}, "sudo", "git", "-C", (config::curated_aur_repo.get_data_path() / "git").c_str(), "verify-commit", "HEAD");
+  exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C",
+                 (config::curated_aur_repo.get_data_path() / "git").c_str(), "verify-commit", "HEAD");
 
   std::string whitelist_bytes = file_contents(config::curated_aur_repo.get_data_path() / "git" / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
