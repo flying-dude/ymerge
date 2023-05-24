@@ -5,6 +5,7 @@
 
 #include "log.hpp"
 #include "sync.hpp"
+#include "pkgbuild.hpp"
 
 using namespace ymerge;
 using namespace std;
@@ -18,4 +19,8 @@ int ymerge_sync() {
     return 1;
   }
   return 0;
+}
+
+int ymerge_package_exists(const char * name) {
+  return pkgbuild::New(name).has_value();
 }
