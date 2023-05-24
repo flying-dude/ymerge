@@ -37,9 +37,13 @@ include_directories(src/youtil)
 include_directories(src/ymerge)
 include_directories(submodules/auracle/src)
 
-file(GLOB_RECURSE ymerge_FILES src/ymerge/*)
-add_executable(ymerge ${ymerge_FILES})
-target_link_libraries(ymerge libauracle youtil)
+file(GLOB_RECURSE libymerge_FILES src/ymerge/*)
+list(REMOVE_ITEM libymerge_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/ymerge/ymerge.cpp)
+add_library(libymerge SHARED ${libymerge_FILES})
+target_link_libraries(libymerge libauracle youtil)
+
+add_executable(ymerge src/ymerge/ymerge.cpp)
+target_link_libraries(ymerge libymerge)
 
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})
@@ -49,7 +53,7 @@ target_link_libraries(auracle absl::container_common absl::strings libauracle)
 
 file(GLOB_RECURSE libauracle_FILES src/libauracle/* submodules/auracle/src/auracle/* submodules/auracle/src/aur/*)
 add_library(libauracle SHARED ${libauracle_FILES})
-set_target_properties(libauracle PROPERTIES PREFIX "")
+set_target_properties(libauracle PROPERTIES PREFIX "") # this does what?!
 target_link_libraries(libauracle
     CURL::libcurl
     fmt::fmt
