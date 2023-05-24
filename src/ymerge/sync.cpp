@@ -38,13 +38,13 @@ void sync() {
       sudo("git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
     }
 
-    // verify the current git commit is signed by an authorized user
+    // create signers file, if it doesn't exist yet
     if (!exists(allowed_signers_file)) {
       auto tmpfile = fly::temporary_file::New();
 
       cout << "tmpfile: " << tmpfile << endl;
       std::ofstream output(tmpfile->path);
-      output << repo.allowed_signers;
+      for (auto& signer : repo.allowed_signers) output << signer << endl;
       output.close();
 
       sudo("cp", tmpfile->path, allowed_signers_file);

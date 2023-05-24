@@ -50,11 +50,13 @@ static void init_config() {
     for (auto const& repo : j["repos"].items()) {
       string name = repo.key();
       string url = repo.value()["url"];
-      string allowed_signers = repo.value()["allowed-signers"];
+
+      vector<string> allowed_signers;
+      for (auto& signer : repo.value()["allowed-signers"]) allowed_signers.push_back(signer);
+
       repos.push_back({name, url, allowed_signers});
     }
 
-    throw runtime_error("XXX");
     curated_aur_repo = repos[0];
   }
 

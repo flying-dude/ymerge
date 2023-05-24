@@ -45,12 +45,6 @@ target_link_libraries(libymerge libauracle youtil)
 add_executable(ymerge src/ymerge/ymerge.cpp)
 target_link_libraries(ymerge libymerge)
 
-# yaml parsing for /etc/ymerge.yaml file
-# https://stackoverflow.com/questions/51036144/finding-correct-cmake-configuration-for-yaml-cpp-library
-#find_package(yaml-cpp REQUIRED)
-#include_directories(${YAML_CPP_INCLUDE_DIRS})
-#target_link_libraries(libymerge ${YAML_CPP_LIBRARIES})
-
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})
 
