@@ -196,24 +196,36 @@ void main_throws(int argc, const char **argv) {
     return;
   }
 
-  if (!exists(config::curated_aur_repo().get_data_path() / "git")) {
-    fmt::print("Package dir \"{}\" not present.\n", (config::curated_aur_repo().get_data_path() / "git" / "pkg").c_str());
-    fmt::print("Use \"ymerge --sync\" to fetch package database.\n");
+  // check if ymerge --sync needs to be executed
+  {
+    bool missing_pkg_db = false;
 
-    bool answer = ask("Do you want me to perform \"ymerge --sync\" right now?");
+    for (auto &repo : config::get_repos()) {
+      if (!exists(repo.get_data_path() / "git")) {
+        fmt::print("Package dir not present: {}\n", (repo.get_data_path() / "git" / "pkg").c_str());
+        missing_pkg_db = true;
+      }
+    }
 
-    // exit program if declined to perform sync. return error or not tho?
-    if (answer == false) return;
+    if (missing_pkg_db) {
+      bool answer = ask("Do you want me to perform \"ymerge --sync\" to fetch package databases?");
 
-    // answer == yes
-    ymerge::sync();
+      // exit program if declined to perform sync. return error or not tho?
+      if (answer == false) return;
+
+      // answer == yes
+      ymerge::sync();
+    }
   }
 
-  // verify git commit before proceeding
-  exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C",
-                 (config::curated_aur_repo().get_data_path() / "git").c_str(), "verify-commit", "HEAD");
+  // verify git commits before proceeding
+  for (auto &repo : config::get_repos()) {
+    exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C", (repo.get_data_path() / "git").c_str(),
+                   "verify-commit", "HEAD");
+  }
 
-  std::string whitelist_bytes = file_contents(config::curated_aur_repo().get_data_path() / "git" / "aur-whitelist.json");
+  std::string whitelist_bytes =
+      file_contents(config::curated_aur_repo().get_data_path() / "git" / "aur-whitelist.json");
   whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;

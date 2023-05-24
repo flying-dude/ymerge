@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <vector>
+#include <map>
 
 /**
  * Read ymerge configuration, initialized lazily when needed.
@@ -16,6 +17,7 @@ struct ymerge_repo {
   std::string name;
   std::string url;
   std::vector<std::string> allowed_signers;
+  //std::map<std::string, std::string> aur_whitelist;
   std::filesystem::path get_data_path() {
     return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name;
   }

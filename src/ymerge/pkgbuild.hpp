@@ -63,7 +63,7 @@ struct pkgbuild_aur : pkgbuild {
 struct pkgbuild_ymerge : pkgbuild {
   std::filesystem::path pkg_folder;
   pkgbuild_ymerge(std::filesystem::path& pkg_folder, config::ymerge_repo ymerge_repo,
-               std::string working_name = "PKGBUILD")
+                  std::string working_name = "PKGBUILD")
       : pkgbuild(ymerge_repo, working_name), pkg_folder(pkg_folder) {}
   ~pkgbuild_ymerge() {}
   void init_build_dir(std::filesystem::path& build_dir);

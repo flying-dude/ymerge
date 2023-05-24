@@ -54,7 +54,6 @@ static void init_config() {
 
       repos.push_back({name, url, allowed_signers});
     }
-
   }
 
   initialized = true;
