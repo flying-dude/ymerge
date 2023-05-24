@@ -9,7 +9,7 @@
 #include "file_contents.hpp"
 #include "log.hpp"
 #include "ymerge.hpp"
-#include "repo.hpp"
+#include "config.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -28,7 +28,7 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
     return result;
   }
 
-  path recipe_dir = curated_aur_repo.get_path() / "git" / "pkg" / pkg_name;
+  path recipe_dir = config::curated_aur_repo.get_path() / "git" / "pkg" / pkg_name;
   if (exists(recipe_dir)) {
     shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
     return result;
@@ -100,12 +100,12 @@ void pkgbuild::install() {
                          + "-" + std::to_string(info_->pkgrel)
                          + "-x86_64.pkg.tar.zst");
 
-  path build_dir = curated_aur_repo.get_path() / "pkg";
+  path build_dir = config::curated_aur_repo.get_path() / "pkg";
   if(!std::filesystem::is_directory(build_dir))
     sudo("mkdir", "--parents", build_dir);
 
   sudo("mv", *opt.working_dir / archive_name , build_dir);
-  sudo("repo-add", curated_aur_repo.get_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
+  sudo("repo-add", config::curated_aur_repo.get_path() / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
 
   if (flag::makepkg)
     return;

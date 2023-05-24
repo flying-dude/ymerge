@@ -3,7 +3,7 @@
 #include <vector>
 #include <filesystem>
 
-namespace ymerge {
+namespace ymerge::config {
 
 extern const char* curated_url;
 extern const char *allowed_signers;

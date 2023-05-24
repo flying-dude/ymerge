@@ -3,12 +3,13 @@
 #include <fstream>
 
 #include "log.hpp"
-#include "repo.hpp"
+#include "config.hpp"
 #include "create_temporary_file.hpp"
 
 using namespace std;
 using namespace std::filesystem;
 using namespace fly;
+using namespace ymerge::config;
 
 namespace ymerge {
 
