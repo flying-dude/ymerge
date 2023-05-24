@@ -21,8 +21,9 @@ struct ymerge_repo {
   }
 };
 
-extern ymerge_repo curated_aur_repo;  // TODO delete this
-
 std::vector<ymerge_repo>& get_repos();
+
+// TODO delete this
+inline ymerge_repo curated_aur_repo() { return get_repos()[0]; };
 
 }  // namespace ymerge::config

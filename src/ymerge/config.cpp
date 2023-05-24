@@ -28,8 +28,6 @@ const char* default_config = R"(
 static bool initialized = false;
 static vector<ymerge_repo> repos;
 
-ymerge_repo curated_aur_repo;  // TODO delete this
-
 // TODO read json config file in /etc/ymerge.yaml
 static void init_config() {
   if (initialized) return;
@@ -57,7 +55,6 @@ static void init_config() {
       repos.push_back({name, url, allowed_signers});
     }
 
-    curated_aur_repo = repos[0];
   }
 
   initialized = true;
