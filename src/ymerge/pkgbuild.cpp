@@ -19,6 +19,7 @@ using namespace fly;
 namespace ymerge {
 
 optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
+  // read PKGBUILD file (this should be explicit and in a separate function!)
   if (pkg_name.ends_with("PKGBUILD")) {
     path PKGBUILD = absolute(path(pkg_name));
     if (!is_regular_file(PKGBUILD)) throw runtime_error(fmt::format("not a file: {}", PKGBUILD.c_str()));
@@ -28,17 +29,21 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
     return result;
   }
 
-  path recipe_dir = config::curated_aur_repo.get_path() / "git" / "pkg" / pkg_name;
-  if (exists(recipe_dir)) {
-    shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
-    return result;
-  } else if (whitelist.contains(pkg_name)) {
-    string hash = whitelist[pkg_name];
-    shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg_name, hash);
-    return result;
-  } else {
-    return nullopt;
+  // read PKGBUILD file from available git repos
+  for (auto& r : config::get_repos()) {
+    path recipe_dir = r.get_path() / "git" / "pkg" / pkg_name;
+    if (exists(recipe_dir)) {
+      shared_ptr<pkgbuild> result = make_shared<pkgbuild_raw>(recipe_dir, pkg_name);
+      return result;
+    } else if (whitelist.contains(pkg_name)) {
+      string hash = whitelist[pkg_name];
+      shared_ptr<pkgbuild> result = make_shared<pkgbuild_aur>(pkg_name, hash);
+      return result;
+    }
   }
+
+  // no PKGBUILD found
+  return nullopt;
 }
 
 path pkgbuild::init_build_dir() {
