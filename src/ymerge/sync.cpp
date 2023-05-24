@@ -12,7 +12,7 @@ using namespace std;
 namespace ymerge {
 
 void sync() {
-  for (auto& repo : config::get_repos()) {
+  for (auto& repo : config_::get_repos()) {
     path pkg = repo.data_path / "pkg";
     if (!is_directory(pkg)) { sudo("mkdir", "--parents", pkg); }
 

@@ -31,7 +31,7 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
   }*/
 
   // read PKGBUILD file from available git repos
-  for (auto& r : config::get_repos()) {
+  for (auto& r : config_::get_repos()) {
     path recipe_dir = r.data_path / "git" / "pkg" / pkg_name;
     if (exists(recipe_dir)) {
       shared_ptr<pkgbuild> result = make_shared<pkgbuild_ymerge>(recipe_dir, r, pkg_name);
@@ -59,7 +59,7 @@ void pkgbuild::merge() {
   path build_dir = init_build_dir();
   info("build dir: {}", build_dir.c_str());
 
-  if (step::srcinfo() || step::install()) init_srcinfo();
+  if (step::srcinfo() || step::install()) get_srcinfo();
   if (step::srcinfo()) print_srcinfo();
   if (step::install()) install();
 }
@@ -74,7 +74,7 @@ void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
   exec("cp", "--recursive", "--no-target-directory", pkg_folder, build_dir);
 }
 
-srcinfo& pkgbuild::init_srcinfo() {
+srcinfo& pkgbuild::get_srcinfo() {
   if (info_.has_value()) return info_.value();
 
   path build_dir = init_build_dir();

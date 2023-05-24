@@ -12,7 +12,7 @@
  * will be used in that case (see config.cpp).
  */
 
-namespace ymerge::config {
+namespace ymerge::config_ {
 
 struct ymerge_repo {
   std::string name;
@@ -31,4 +31,4 @@ struct ymerge_repo {
 
 std::vector<ymerge_repo>& get_repos();
 
-}  // namespace ymerge::config
+}  // namespace ymerge::config_

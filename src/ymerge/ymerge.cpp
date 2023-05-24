@@ -187,7 +187,7 @@ void ymerge::main_throws(int argc, const char **argv) {
   {
     bool missing_pkg_db = false;
 
-    for (auto &repo : config::get_repos()) {
+    for (auto &repo : config_::get_repos()) {
       if (!exists(repo.data_path / "git")) {
         fmt::print("Package dir not present: {}\n", (repo.data_path / "git" / "pkg").c_str());
         missing_pkg_db = true;
@@ -206,7 +206,7 @@ void ymerge::main_throws(int argc, const char **argv) {
   }
 
   // verify git commits before proceeding
-  for (auto &repo : config::get_repos()) {
+  for (auto &repo : config_::get_repos()) {
     exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C", (repo.data_path / "git").c_str(),
                    "verify-commit", "HEAD");
   }
@@ -277,7 +277,7 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
   for (auto &r : recipes)
     if (r->working_name == recipe->working_name) return;
 
-  srcinfo &s = recipe->init_srcinfo();
+  srcinfo &s = recipe->get_srcinfo();
   for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 

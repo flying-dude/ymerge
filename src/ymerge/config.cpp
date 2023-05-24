@@ -10,7 +10,7 @@ using namespace std::filesystem;
 
 #include <iostream>
 
-namespace ymerge::config {
+namespace ymerge::config_ {
 
 const char* default_config_ymerge = R"(
 {
@@ -82,4 +82,4 @@ vector<ymerge_repo>& get_repos() {
   return repos;
 }
 
-}  // namespace ymerge::config
+}  // namespace ymerge::config_

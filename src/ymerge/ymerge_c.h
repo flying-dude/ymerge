@@ -1,14 +1,19 @@
 // exposing ymerge functionality as a C interface
 
+#include "alpm_list.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// ymerge --sync
+/** ymerge --sync */
 int ymerge_sync();
 
-// let yman query, if ymerge provides a certain package
-int ymerge_package_exists(const char * name);
+/**
+ * Attempt queuing a package in ymerge. Returns true, if the package exists.
+ * Writes binary dependencies into **yman_deps.
+ */
+int ymerge_process_pkg(alpm_list_t *dbs, const char *pkg);
 
 #ifdef __cplusplus
 }
