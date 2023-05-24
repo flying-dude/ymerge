@@ -12,7 +12,7 @@
 
 namespace ymerge::config {
 
-struct repo {
+struct ymerge_repo {
   std::string name;
   std::string url;
   std::vector<std::string> allowed_signers;
@@ -21,8 +21,8 @@ struct repo {
   }
 };
 
-extern repo curated_aur_repo;  // TODO delete this
+extern ymerge_repo curated_aur_repo;  // TODO delete this
 
-std::vector<repo>& get_repos();
+std::vector<ymerge_repo>& get_repos();
 
 }  // namespace ymerge::config
