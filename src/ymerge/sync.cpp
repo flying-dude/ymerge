@@ -30,12 +30,17 @@ void sync() {
 
   sudo("pacman", "--sync", "--refresh");
 
-  path git_dir = curated_aur_repo.get_path() / "git";
-  path allowed_signers_file = curated_aur_repo.get_path() / "allowed_signers";
+  /*for (auto& r : config::get_repos()) {
+    r.sync();
+  }*/
+
+  config::repo curated_aur_repoa = config::curated_aur_repo;
+  path git_dir = curated_aur_repoa.get_path() / "git";
+  path allowed_signers_file = curated_aur_repoa.get_path() / "allowed_signers";
 
   if (!exists(git_dir)) {
     sudo("mkdir", "--parents", git_dir.c_str());
-    sudo("git", "clone", "--depth", "1", "--", curated_aur_repo.url, git_dir);
+    sudo("git", "clone", "--depth", "1", "--", curated_aur_repoa.url, git_dir);
   } else {
     // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
     cmd_options opt_rev_parse;
@@ -49,12 +54,13 @@ void sync() {
     sudo("git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
   }
 
+  // verify the current git commit is signed by an authorized user
   if (!exists(allowed_signers_file)) {
     auto tmpfile = temporary_file::New();
 
     cout << "tmpfile: " << tmpfile << endl;
     std::ofstream output(tmpfile->path);
-    output << curated_aur_repo.allowed_signers;
+    output << curated_aur_repoa.allowed_signers;
     output.close();
 
     sudo("cp", tmpfile->path, allowed_signers_file);

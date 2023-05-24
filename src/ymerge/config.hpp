@@ -17,10 +17,11 @@ struct repo {
   std::string url;
   std::string allowed_signers;
   std::filesystem::path get_path() { return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name; }
+  void sync();
 };
 
 extern repo curated_aur_repo;
 
-std::vector<repo> get_repos();
+std::vector<repo>& get_repos();
 
 }
