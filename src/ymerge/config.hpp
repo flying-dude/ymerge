@@ -16,8 +16,9 @@ struct repo {
   std::string name;
   std::string url;
   std::string allowed_signers;
-  std::filesystem::path get_data_path() { return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name; }
-  void sync();
+  std::filesystem::path get_data_path() {
+    return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name;
+  }
 };
 
 extern repo curated_aur_repo;
