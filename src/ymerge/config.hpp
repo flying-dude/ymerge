@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <filesystem>
+#include <vector>
 
 /**
  * Read ymerge configuration, initialized lazily when needed.
@@ -16,11 +16,12 @@ struct repo {
   std::string name;
   std::string url;
   std::string allowed_signers;
-  std::filesystem::path get_path() { return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name; }
+  std::filesystem::path get_data_path() { return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name; }
+  void sync();
 };
 
 extern repo curated_aur_repo;
 
 std::vector<repo>& get_repos();
 
-}
+}  // namespace ymerge::config
