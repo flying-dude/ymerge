@@ -38,11 +38,11 @@ include_directories(src/ymerge)
 include_directories(submodules/auracle/src)
 
 file(GLOB_RECURSE libymerge_FILES src/ymerge/*)
-list(REMOVE_ITEM libymerge_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/ymerge/ymerge.cpp)
+list(REMOVE_ITEM libymerge_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/ymerge/ymerge_main.cpp)
 add_library(libymerge SHARED ${libymerge_FILES})
 target_link_libraries(libymerge libauracle youtil)
 
-add_executable(ymerge src/ymerge/ymerge.cpp)
+add_executable(ymerge src/ymerge/ymerge_main.cpp)
 target_link_libraries(ymerge libymerge)
 
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
@@ -69,7 +69,7 @@ file(GLOB_RECURSE yman_FILES submodules/pacman/src/pacman/*)
 list(REMOVE_ITEM yman_FILES ${CMAKE_CURRENT_SOURCE_DIR}/submodules/pacman/src/pacman/pacman-conf.c)
 add_executable(yman ${yman_FILES})
 find_package(LibArchive REQUIRED)
-target_link_libraries(yman
+target_link_libraries(yman libymerge
     PkgConfig::libalpm
     LibArchive::LibArchive # https://cmake.org/cmake/help/latest/module/FindLibArchive.html
 )

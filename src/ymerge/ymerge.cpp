@@ -91,19 +91,8 @@ bool ask(std::string question);
 void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
                         bool &missing_pkg_error);
 
-void main_throws(int argc, const char **argv);
-int main(int argc, const char **argv) {
-  try {
-    main_throws(argc, argv);
-  } catch (const exception &err) {
-    string msg = err.what();
-    if (msg.length() > 0) error("{}", err.what());
-    return 1;
-  }
-}
-
 /// this is the actual main-function. it can throw exceptions, which need to be caught by the calling function.
-void main_throws(int argc, const char **argv) {
+void ymerge::main_throws(int argc, const char **argv) {
   if (argc == 1) {
     cout << usage << endl;
     return;
