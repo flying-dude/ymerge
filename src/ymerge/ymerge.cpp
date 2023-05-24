@@ -82,8 +82,6 @@ bool verbose = false;
 bool version = false;
 }  // namespace flag
 
-json whitelist;
-
 }  // namespace ymerge
 
 using namespace auracle;
@@ -201,8 +199,8 @@ void main_throws(int argc, const char **argv) {
     bool missing_pkg_db = false;
 
     for (auto &repo : config::get_repos()) {
-      if (!exists(repo.get_data_path() / "git")) {
-        fmt::print("Package dir not present: {}\n", (repo.get_data_path() / "git" / "pkg").c_str());
+      if (!exists(repo.data_path / "git")) {
+        fmt::print("Package dir not present: {}\n", (repo.data_path / "git" / "pkg").c_str());
         missing_pkg_db = true;
       }
     }
@@ -220,13 +218,9 @@ void main_throws(int argc, const char **argv) {
 
   // verify git commits before proceeding
   for (auto &repo : config::get_repos()) {
-    exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C", (repo.get_data_path() / "git").c_str(),
+    exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C", (repo.data_path / "git").c_str(),
                    "verify-commit", "HEAD");
   }
-
-  std::string whitelist_bytes =
-      file_contents(config::curated_aur_repo().get_data_path() / "git" / "aur-whitelist.json");
-  whitelist = json::parse(whitelist_bytes);
 
   auracle::Pacman pacman;
 

@@ -12,7 +12,7 @@ using namespace std::filesystem;
 
 namespace ymerge::config {
 
-const char* default_config = R"(
+const char* default_config_ymerge = R"(
 {
   "repos": {
     "curated-aur": {
@@ -36,7 +36,7 @@ static void init_config() {
   if (exists("/etc/ymerge.json"))
     config = fly::file_contents("/etc/ymerge.json");
   else
-    config = default_config;
+    config = default_config_ymerge;
 
   json j = json::parse(config);
 
@@ -57,6 +57,24 @@ static void init_config() {
   }
 
   initialized = true;
+}
+
+ymerge_repo::ymerge_repo(string name, string url, vector<string> allowed_signers)
+    : name(name), url(url), allowed_signers(allowed_signers) {
+  data_path = std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name;
+}
+
+map<string, string>& ymerge_repo::get_aur_whitelist() {
+  if (!aur_whitelist) {
+    aur_whitelist = make_optional<map<string, string>>();
+
+    std::string whitelist_bytes = fly::file_contents(data_path / "git" / "aur-whitelist.json");
+    json whitelist = json::parse(whitelist_bytes);
+
+    for (auto& item : whitelist.items()) aur_whitelist->emplace(item.key(), item.value());
+  }
+
+  return *aur_whitelist;
 }
 
 vector<ymerge_repo>& get_repos() {

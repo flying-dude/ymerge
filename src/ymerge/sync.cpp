@@ -13,14 +13,14 @@ namespace ymerge {
 
 void sync() {
   for (auto& repo : config::get_repos()) {
-    path pkg = repo.get_data_path() / "pkg";
+    path pkg = repo.data_path / "pkg";
     if (!is_directory(pkg)) { sudo("mkdir", "--parents", pkg); }
 
     path db = pkg / (repo.name + ".db.tar");
     if (!exists(db)) { sudo("repo-add", db); }
 
-    path git_dir = repo.get_data_path() / "git";
-    path allowed_signers_file = repo.get_data_path() / "allowed_signers";
+    path git_dir = repo.data_path / "git";
+    path allowed_signers_file = repo.data_path / "allowed_signers";
 
     if (!exists(git_dir)) {
       sudo("mkdir", "--parents", git_dir.c_str());

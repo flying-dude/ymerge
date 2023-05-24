@@ -1,8 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include <vector>
 #include <map>
+#include <optional>
+#include <vector>
 
 /**
  * Read ymerge configuration, initialized lazily when needed.
@@ -17,15 +18,17 @@ struct ymerge_repo {
   std::string name;
   std::string url;
   std::vector<std::string> allowed_signers;
-  //std::map<std::string, std::string> aur_whitelist;
-  std::filesystem::path get_data_path() {
-    return std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name;
-  }
+  std::filesystem::path data_path;
+
+  ymerge_repo(std::string name, std::string url, std::vector<std::string> allowed_signers);
+
+ private:
+  std::optional<std::map<std::string, std::string>> aur_whitelist = std::nullopt;
+
+ public:
+  std::map<std::string, std::string>& get_aur_whitelist();
 };
 
 std::vector<ymerge_repo>& get_repos();
-
-// TODO delete this
-inline ymerge_repo curated_aur_repo() { return get_repos()[0]; };
 
 }  // namespace ymerge::config

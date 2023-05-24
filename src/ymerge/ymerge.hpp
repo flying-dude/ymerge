@@ -27,6 +27,4 @@ inline bool srcinfo() { return flag::srcinfo; }
 inline bool install() { return !flag::srcinfo && !flag::remove; }
 }  // namespace step
 
-extern nlohmann::json whitelist;
-
 }  // namespace ymerge
