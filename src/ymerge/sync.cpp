@@ -13,10 +13,10 @@ namespace ymerge {
 
 void sync() {
   for (auto& repo : config::get_repos()) {
-    std::filesystem::path pkg = repo.get_data_path() / "pkg";
+    path pkg = repo.get_data_path() / "pkg";
     if (!is_directory(pkg)) { sudo("mkdir", "--parents", pkg); }
 
-    std::filesystem::path db = pkg / (repo.name + ".db.tar");
+    path db = pkg / (repo.name + ".db.tar");
     if (!exists(db)) { sudo("repo-add", db); }
 
     path git_dir = repo.get_data_path() / "git";

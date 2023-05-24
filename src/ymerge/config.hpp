@@ -21,7 +21,7 @@ struct repo {
   }
 };
 
-extern repo curated_aur_repo;
+extern repo curated_aur_repo;  // TODO delete this
 
 std::vector<repo>& get_repos();
 
