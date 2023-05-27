@@ -61,7 +61,7 @@ static void init_config() {
 
 ymerge_repo::ymerge_repo(string name, string url, vector<string> allowed_signers)
     : name(name), url(url), allowed_signers(allowed_signers) {
-  data_path = std::filesystem::path("/") / "var" / "lib" / "ymerge" / "repo" / name;
+  data_path = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "repo" / name;
 }
 
 map<string, string>& ymerge_repo::get_aur_whitelist() {
