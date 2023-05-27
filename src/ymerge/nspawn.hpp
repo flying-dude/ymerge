@@ -2,7 +2,7 @@
 
 namespace ymerge {
 
-std::filesystem::path chroot_dir = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "nspawn";
+std::filesystem::path nspawn_dir = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "nspawn";
 extern void init_nspawn();
 
 template <typename... T>
