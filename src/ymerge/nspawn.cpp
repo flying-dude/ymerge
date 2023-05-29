@@ -18,7 +18,7 @@ void init_nspawn() {
 
   try {
     info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
-    filesystem::create_directories(nspawn_dir);
+    filesystem::create_directories(makepkg_dir); // subfolder of nspawn_dir
     init_nspawn_throws();
   } catch (const std::exception &err) {
     try {
@@ -71,11 +71,7 @@ root ALL=(ALL) ALL
 %wheel ALL=(ALL) NOPASSWD: ALL
 )");
 
-  /*
-   * 1) create [nspawn] executor
-   * 2) create user ymerge, add it to wheel group
-   * 3) create build folder
-   */
+  nspawn("useradd", "--create-home", "--groups", "wheel", "ymerge");
 
   /*
    * makepkg steps:
