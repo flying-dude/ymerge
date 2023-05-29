@@ -32,4 +32,9 @@ std::shared_ptr<std::string> read_file(std::filesystem::path path) {
   return content;
 }
 
+void write_file(std::filesystem::path p, const char * s) {
+  std::ofstream stream(p);
+  stream << s;
+}
+
 }  // namespace fly
