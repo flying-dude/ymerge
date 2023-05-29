@@ -30,7 +30,7 @@ struct pkgbuild {
 
   std::filesystem::path init_build_dir();
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;
-  srcinfo& get_srcinfo();
+  srcinfo& init_srcinfo();
 
   // build package or return error message, if something went wrong
   void merge();
@@ -42,7 +42,7 @@ struct pkgbuild {
 
   // obtain full package name including pkgver and pkgrel.
   std::string full_name() {
-    srcinfo& si = get_srcinfo();
+    srcinfo& si = init_srcinfo();
     return fmt::format("{}-{}-{}", si.pkgname, si.pkgver, si.pkgrel);
   }
 

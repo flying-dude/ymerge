@@ -62,7 +62,7 @@ static int ymerge_process_pkg(alpm_list_t* dbs, string pkg_name, set<string>& al
   if (!pkgbuild_.has_value()) return 0;
 
   pkgbuild& p = **pkgbuild_;
-  srcinfo& si = p.get_srcinfo();
+  srcinfo& si = p.init_srcinfo();
 
   // obtain depending packages
   std::vector<std::string> deps;

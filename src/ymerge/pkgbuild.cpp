@@ -7,9 +7,10 @@
 #include "cmd.hpp"
 #include "config.hpp"
 #include "create_temporary_directory.hpp"
-#include "file_contents.hpp"
+#include "file_util.hpp"
 #include "log.hpp"
 #include "ymerge.hpp"
+#include "nspawn.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -48,6 +49,7 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
 }
 
 path pkgbuild::init_build_dir() {
+  init_nspawn();
   if (build_dir_.has_value()) return build_dir_.value()->path;
 
   build_dir_ = temporary_directory::New(fmt::format("ymerge-{}_", working_name));
@@ -59,7 +61,7 @@ void pkgbuild::merge() {
   path build_dir = init_build_dir();
   info("build dir: {}", build_dir.c_str());
 
-  if (step::srcinfo() || step::install()) get_srcinfo();
+  if (step::srcinfo() || step::install()) init_srcinfo();
   if (step::srcinfo()) print_srcinfo();
   if (step::install()) install();
 }
@@ -74,7 +76,7 @@ void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
   exec("cp", "--recursive", "--no-target-directory", pkg_folder, build_dir);
 }
 
-srcinfo& pkgbuild::get_srcinfo() {
+srcinfo& pkgbuild::init_srcinfo() {
   if (info_.has_value()) return info_.value();
 
   path build_dir = init_build_dir();
@@ -86,7 +88,7 @@ srcinfo& pkgbuild::get_srcinfo() {
     exec_opt(opt, "makepkg", "--printsrcinfo");
   }
 
-  info_ = file_contents(file);
+  info_ = *read_file(file);
   return *info_;
 }
 

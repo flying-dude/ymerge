@@ -3,7 +3,7 @@
 using json = nlohmann::json;
 
 #include "config.hpp"
-#include "file_contents.hpp"
+#include "file_util.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -32,13 +32,13 @@ static vector<ymerge_repo> repos;
 static void init_config() {
   if (initialized) return;
 
-  string config;
+  shared_ptr<string> config;
   if (exists("/etc/ymerge.json"))
-    config = fly::file_contents("/etc/ymerge.json");
+    config = fly::read_file("/etc/ymerge.json");
   else
-    config = default_config_ymerge;
+    config = make_shared<string>(default_config_ymerge);
 
-  json j = json::parse(config);
+  json j = json::parse(*config);
 
   // obtain list of repositories
   {
@@ -68,8 +68,8 @@ map<string, string>& ymerge_repo::get_aur_whitelist() {
   if (!aur_whitelist) {
     aur_whitelist = make_optional<map<string, string>>();
 
-    std::string whitelist_bytes = fly::file_contents(data_path / "git" / "aur-whitelist.json");
-    json whitelist = json::parse(whitelist_bytes);
+    shared_ptr<string> whitelist_bytes = fly::read_file(data_path / "git" / "aur-whitelist.json");
+    json whitelist = json::parse(*whitelist_bytes);
 
     for (auto& item : whitelist.items()) aur_whitelist->emplace(item.key(), item.value());
   }

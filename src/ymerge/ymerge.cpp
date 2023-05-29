@@ -9,7 +9,7 @@
 #include "auracle/auracle.hh"
 #include "cmd.hpp"
 #include "config.hpp"
-#include "file_contents.hpp"
+#include "file_util.hpp"
 #include "log.hpp"
 #include "pkgbuild.hpp"
 #include "sync.hpp"
@@ -277,7 +277,7 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
   for (auto &r : recipes)
     if (r->working_name == recipe->working_name) return;
 
-  srcinfo &s = recipe->get_srcinfo();
+  srcinfo &s = recipe->init_srcinfo();
   for (auto &pkg : s.makedepends) {
     if (pacman.HasPackage(pkg)) continue;
 

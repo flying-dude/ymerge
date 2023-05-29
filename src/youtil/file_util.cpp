@@ -1,4 +1,4 @@
-#include "file_contents.hpp"
+#include "file_util.hpp"
 
 #include <fmt/core.h>
 
@@ -11,7 +11,7 @@ namespace fly {
 
 // https://blog.insane.engineer/post/cpp_read_file_into_string/
 /** Returns a std::string, which represents the raw bytes of the file. */
-std::string file_contents(std::filesystem::path path) {
+std::shared_ptr<std::string> read_file(std::filesystem::path path) {
   // Sanity check
   if (!std::filesystem::is_regular_file(path)) throw runtime_error(fmt::format("not a file: {}", path.c_str()));
 
@@ -23,8 +23,8 @@ std::string file_contents(std::filesystem::path path) {
 
   // Read contents
   const std::size_t &size = std::filesystem::file_size(path);
-  std::string content(size, '\0');
-  file.read(content.data(), size);
+  std::shared_ptr<std::string> content = make_shared<std::string>(size, '\0');
+  file.read(content->data(), size);
 
   // Close the file
   file.close();

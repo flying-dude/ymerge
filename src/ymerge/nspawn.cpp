@@ -25,7 +25,28 @@ TODO can you actually use nspawn w/o systemd running??)");
   info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
   filesystem::create_directories(nspawn_dir);
 
-  exec("pacstrap", "-c", nspawn_dir, "base", "base-devel");
+  exec("pacstrap", "-c", nspawn_dir, "base", "base-devel", "sudo");
+  auto a = R"(
+[options]
+HoldPkg     = pacman glibc
+Architecture = auto
+
+Color
+
+# By default, pacman accepts packages signed by keys that its local keyring
+# trusts (see pacman-key and its man page), as well as unsigned packages.
+SigLevel    = Required DatabaseOptional
+LocalFileSigLevel = Optional
+
+[core]
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+Include = /etc/pacman.d/mirrorlist
+
+[community]
+Include = /etc/pacman.d/mirrorlist
+)";
 
   /*
    * 1) create nspawn directory
