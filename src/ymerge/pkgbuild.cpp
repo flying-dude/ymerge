@@ -9,8 +9,8 @@
 #include "create_temporary_directory.hpp"
 #include "file_util.hpp"
 #include "log.hpp"
-#include "ymerge.hpp"
 #include "nspawn.hpp"
+#include "ymerge.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -88,7 +88,7 @@ srcinfo& pkgbuild::init_srcinfo() {
     exec_opt(opt, "makepkg", "--printsrcinfo");
   }
 
-  info_ = *read_file(file);
+  info_ = *fly::file::read(file);
   return *info_;
 }
 

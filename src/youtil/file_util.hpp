@@ -8,10 +8,11 @@
  * Convenience functions for basic file operations.
  */
 
-namespace fly {
+namespace fly::file {
 
-std::shared_ptr<std::string> read_file(std::filesystem::path);
-void write_file(std::filesystem::path, const char *);
-inline void write_file(std::filesystem::path p, std::string s) { write_file(p, s.c_str()); }
+std::shared_ptr<std::string> read(std::filesystem::path);
+void write(std::filesystem::path, const char *);
+inline void write(std::filesystem::path p, std::string s) { write(p, s.c_str()); }
+inline void touch(std::filesystem::path p) { write(p, ""); }
 
 }

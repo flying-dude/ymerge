@@ -34,7 +34,7 @@ static void init_config() {
 
   shared_ptr<string> config;
   if (exists("/etc/ymerge.json"))
-    config = fly::read_file("/etc/ymerge.json");
+    config = fly::file::read("/etc/ymerge.json");
   else
     config = make_shared<string>(default_config_ymerge);
 
@@ -68,7 +68,7 @@ map<string, string>& ymerge_repo::get_aur_whitelist() {
   if (!aur_whitelist) {
     aur_whitelist = make_optional<map<string, string>>();
 
-    shared_ptr<string> whitelist_bytes = fly::read_file(data_path / "git" / "aur-whitelist.json");
+    shared_ptr<string> whitelist_bytes = fly::file::read(data_path / "git" / "aur-whitelist.json");
     json whitelist = json::parse(*whitelist_bytes);
 
     for (auto& item : whitelist.items()) aur_whitelist->emplace(item.key(), item.value());

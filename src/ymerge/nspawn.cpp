@@ -1,15 +1,20 @@
+#include "nspawn.hpp"
+
 #include <filesystem>
 #include <iostream>
 
-#include "nspawn.hpp"
+#include "file_util.hpp"
 
 using namespace std;
+using namespace fly;
 
 namespace ymerge {
 
- std::filesystem::path nspawn_dir = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "nspawn";
+std::filesystem::path nspawn_dir = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "nspawn";
 
 void init_nspawn() {
+  if (filesystem::exists(nspawn_dir)) return;
+
   // check if systemd is actually running, before invoking systemd-nspawn
   // we might be running inside a container or chroot, where systemd isn't started
   // https://superuser.com/questions/1017959/how-to-know-if-i-am-using-systemd-on-linux/1631444#1631444
@@ -18,17 +23,15 @@ void init_nspawn() {
     throw std::runtime_error(R"(Cannot initialize build container for systemd-nspawn. systemd is not running.
 TODO can you actually use nspawn w/o systemd running??)");
 
-
-  if (filesystem::is_directory(nspawn_dir))
-    return;
-
   info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
   filesystem::create_directories(nspawn_dir);
 
+  // set up the base system for the container using pacstrap
   exec("pacstrap", "-c", nspawn_dir, "base", "base-devel", "sudo");
-  auto a = R"(
+
+  // configure pacman
+  fly::file::write(nspawn_dir / "etc" / "pacman.conf", R"(
 [options]
-HoldPkg     = pacman glibc
 Architecture = auto
 
 Color
@@ -46,13 +49,17 @@ Include = /etc/pacman.d/mirrorlist
 
 [community]
 Include = /etc/pacman.d/mirrorlist
-)";
+)");
+
+  // configure sudo
+  fly::file::write(nspawn_dir / "etc" / "sudoers", R"(
+Defaults    !env_reset
+root ALL=(ALL) ALL
+%wheel ALL=(ALL) NOPASSWD: ALL
+)");
 
   /*
-   * 1) create nspawn directory
-   * 2) pacstrap ("base, basel-devel")
-   *    pacman.conf
-   * * create [nspawn] executor
+   * 1) create [nspawn] executor
    * 3) create user ymerge, add it to wheel group
    * 4) install and configure sudo
    * 5) create build folder

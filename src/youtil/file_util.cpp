@@ -7,11 +7,11 @@
 using namespace std;
 using namespace std::filesystem;
 
-namespace fly {
+namespace fly::file {
 
 // https://blog.insane.engineer/post/cpp_read_file_into_string/
 /** Returns a std::string, which represents the raw bytes of the file. */
-std::shared_ptr<std::string> read_file(std::filesystem::path path) {
+std::shared_ptr<std::string> read(std::filesystem::path path) {
   // Sanity check
   if (!std::filesystem::is_regular_file(path)) throw runtime_error(fmt::format("not a file: {}", path.c_str()));
 
@@ -32,7 +32,7 @@ std::shared_ptr<std::string> read_file(std::filesystem::path path) {
   return content;
 }
 
-void write_file(std::filesystem::path p, const char * s) {
+void write(std::filesystem::path p, const char * s) {
   std::ofstream stream(p);
   stream << s;
 }
