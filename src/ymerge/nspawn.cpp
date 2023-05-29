@@ -12,9 +12,25 @@ namespace ymerge {
 
 std::filesystem::path nspawn_dir = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "nspawn";
 
+void init_nspawn_throws();
 void init_nspawn() {
   if (filesystem::exists(nspawn_dir)) return;
 
+  try {
+    info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
+    filesystem::create_directories(nspawn_dir);
+    init_nspawn_throws();
+  } catch (const std::exception &err) {
+    try {
+      // delete incomplete container setup
+      std::filesystem::remove_all(nspawn_dir);
+    } catch (const std::exception &err2) { /* ignore */
+    }
+    throw std::runtime_error(fmt::format("creating nspawn failed: {}", err.what()));
+  }
+}
+
+void init_nspawn_throws() {
   // check if systemd is actually running, before invoking systemd-nspawn
   // we might be running inside a container or chroot, where systemd isn't started
   // https://superuser.com/questions/1017959/how-to-know-if-i-am-using-systemd-on-linux/1631444#1631444
@@ -22,9 +38,6 @@ void init_nspawn() {
   if (!filesystem::is_directory(sd_booted))
     throw std::runtime_error(R"(Cannot initialize build container for systemd-nspawn. systemd is not running.
 TODO can you actually use nspawn w/o systemd running??)");
-
-  info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
-  filesystem::create_directories(nspawn_dir);
 
   // set up the base system for the container using pacstrap
   exec("pacstrap", "-c", nspawn_dir, "base", "base-devel", "sudo");
@@ -60,9 +73,8 @@ root ALL=(ALL) ALL
 
   /*
    * 1) create [nspawn] executor
-   * 3) create user ymerge, add it to wheel group
-   * 4) install and configure sudo
-   * 5) create build folder
+   * 2) create user ymerge, add it to wheel group
+   * 3) create build folder
    */
 
   /*
