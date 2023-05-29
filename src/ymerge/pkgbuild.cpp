@@ -77,6 +77,7 @@ void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
 }
 
 srcinfo& pkgbuild::init_srcinfo() {
+  todo("run makepkg inside nspawn");
   if (info_.has_value()) return info_.value();
 
   path build_dir = init_build_dir();
@@ -96,6 +97,7 @@ void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 
 // this will actually install the package using pacman
 void pkgbuild::install() {
+  todo("run makepkg inside nspawn");
   cmd_options opt;
   opt.working_dir = init_build_dir();
 
@@ -123,7 +125,7 @@ void pkgbuild::install() {
 
 void pkgbuild::remove() {
   // when we remove a package we won't even init srcinfo. that means we have to use working_name instead of
-  // srcinfo->pkgname, since that one is N/A. probably these two are (always?) identical anyway.
+  // srcinfo->pkgname, since that one is N/A at this stage. probably these two are (always?) identical anyway.
   if (flag::confirm)
     sudo("pacman", "--remove", working_name);
   else
