@@ -175,9 +175,9 @@ void main_throws(int argc_, const char **argv_) {
     as_sudo();
 
     if (flag::confirm)
-      sudo("pacman", "--sync", "--sysupgrade", "--sysupgrade");
+      exec("pacman", "--sync", "--sysupgrade", "--sysupgrade");
     else
-      sudo("pacman", "--noconfirm", "--sync", "--sysupgrade", "--sysupgrade");
+      exec("pacman", "--noconfirm", "--sync", "--sysupgrade", "--sysupgrade");
 
     todo("implement --update flag");
   }
@@ -189,7 +189,7 @@ void main_throws(int argc_, const char **argv_) {
   as_sudo();
 
   if (flag::remove) {
-    sudo("pacman", "--remove", pkgs.v);
+    exec("pacman", "--remove", pkgs.v);
     return;
   }
 

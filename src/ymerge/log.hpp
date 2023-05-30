@@ -120,18 +120,6 @@ FMT_INLINE void exec(T &&...args) {
 }
 
 template <typename... T>
-FMT_INLINE void sudo_opt(fly::cmd_options opt, T &&...args) {
-  as_sudo();
-  exec_print(opt, fmt::color::maroon, "sudo", args...);
-  cmd_opt(opt, "sudo", args...);
-}
-
-template <typename... T>
-FMT_INLINE void sudo(T &&...args) {
-  sudo_opt({}, args...);
-}
-
-template <typename... T>
 FMT_INLINE void git(std::filesystem::path git_dir, T &&...args) {
   fly::cmd_options opt;
   opt.working_dir = git_dir;

@@ -110,26 +110,26 @@ void pkgbuild::install() {
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
 
   path build_dir = ymerge_repo.data_path / "pkg";
-  if (!std::filesystem::is_directory(build_dir)) sudo("mkdir", "--parents", build_dir);
+  if (!std::filesystem::is_directory(build_dir)) filesystem::create_directories(build_dir);
 
-  sudo("mv", *opt.working_dir / archive_name, build_dir);
-  sudo("repo-add", ymerge_repo.data_path / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
+  filesystem::rename(*opt.working_dir / archive_name, build_dir);
+  exec("repo-add", ymerge_repo.data_path / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
 
   if (flag::makepkg) return;
 
   if (flag::confirm)
-    sudo("pacman", "--upgrade", build_dir / archive_name);
+    exec("pacman", "--upgrade", build_dir / archive_name);
   else
-    sudo("pacman", "--upgrade", "--noconfirm", build_dir / archive_name);
+    exec("pacman", "--upgrade", "--noconfirm", build_dir / archive_name);
 }
 
 void pkgbuild::remove() {
   // when we remove a package we won't even init srcinfo. that means we have to use working_name instead of
   // srcinfo->pkgname, since that one is N/A at this stage. probably these two are (always?) identical anyway.
   if (flag::confirm)
-    sudo("pacman", "--remove", working_name);
+    exec("pacman", "--remove", working_name);
   else
-    sudo("pacman", "--remove", "--noconfirm", working_name);
+    exec("pacman", "--remove", "--noconfirm", working_name);
 }
 
 }  // namespace ymerge

@@ -14,17 +14,17 @@ namespace ymerge {
 void sync() {
   for (auto& repo : config_::get_repos()) {
     path pkg = repo.data_path / "pkg";
-    if (!is_directory(pkg)) { sudo("mkdir", "--parents", pkg); }
+    if (!is_directory(pkg)) { filesystem::create_directories(pkg); }
 
     path db = pkg / (repo.name + ".db.tar");
-    if (!exists(db)) { sudo("repo-add", db); }
+    if (!exists(db)) { exec("repo-add", db); }
 
     path git_dir = repo.data_path / "git";
     path allowed_signers_file = repo.data_path / "allowed_signers";
 
     if (!exists(git_dir)) {
-      sudo("mkdir", "--parents", git_dir.c_str());
-      sudo("git", "clone", "--depth", "1", "--", repo.url, git_dir);
+      filesystem::create_directories(git_dir);
+      exec("git", "clone", "--depth", "1", "--", repo.url, git_dir);
     } else {
       // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
       fly::cmd_options opt_rev_parse;
@@ -51,7 +51,7 @@ void sync() {
       for (auto& signer : repo.allowed_signers) output << signer << endl;
       output.close();
 
-      sudo("cp", tmpfile->path, allowed_signers_file);
+      filesystem::copy(tmpfile->path, allowed_signers_file);
       git(git_dir, "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
     }
   }
