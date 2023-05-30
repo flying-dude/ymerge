@@ -38,8 +38,8 @@ void sync() {
       }
 
       // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
-      sudo("git", "-C", git_dir.c_str(), "fetch", "--depth", "1");
-      sudo("git", "-C", git_dir.c_str(), "reset", "--hard", "origin/main");
+      git(git_dir, "fetch", "--depth", "1");
+      git(git_dir, "reset", "--hard", "origin/main");
     }
 
     // create signers file, if it doesn't exist yet
@@ -52,7 +52,7 @@ void sync() {
       output.close();
 
       sudo("cp", tmpfile->path, allowed_signers_file);
-      sudo("git", "-C", git_dir.c_str(), "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
+      git(git_dir, "config", "gpg.ssh.allowedSignersFile", allowed_signers_file.c_str());
     }
   }
 

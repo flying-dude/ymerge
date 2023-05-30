@@ -69,7 +69,7 @@ void pkgbuild::merge() {
 void pkgbuild_aur::init_build_dir(std::filesystem::path& build_dir) {
   auto url = fmt::format("https://aur.archlinux.org/{}.git", working_name);
   exec("git", "clone", url, build_dir);
-  exec("git", "-C", build_dir, "reset", "--hard", git_hash);
+  git(build_dir, "reset", "--hard", git_hash);
 }
 
 void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
