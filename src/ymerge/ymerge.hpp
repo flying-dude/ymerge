@@ -6,6 +6,13 @@
 
 namespace ymerge {
 
+extern int argc;
+extern const char **argv;
+
+/* reinvoke ymerge with identical command line but prefix with sudo.
+ * the point of doing that is to obtain root permissions, if needed. */
+extern void as_sudo();
+
 void main_throws(int argc, const char **argv);
 
 namespace flag {

@@ -1,13 +1,16 @@
+#include "ymerge_main.hpp"
+
 #include <exception>
 #include <string>
 
+#include "cmd.hpp"
 #include "log.hpp"
 #include "ymerge.hpp"
 
 int main(int argc, const char **argv) {
   try {
     ymerge::main_throws(argc, argv);
-  } catch (const std::exception &err) {
+  } catch (const ymerge::not_root_exception &err) { return err.result; } catch (const std::exception &err) {
     std::string msg = err.what();
     if (msg.length() > 0) ymerge::error("{}", err.what());
     return 1;

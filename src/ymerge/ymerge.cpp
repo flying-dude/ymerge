@@ -14,6 +14,7 @@
 #include "pkgbuild.hpp"
 #include "sync.hpp"
 #include "unique_list.hpp"
+#include "ymerge_main.hpp"
 
 /**
  * Package manager for the curated-aur. The command-line interface is inspired by Gentoo Portage:
@@ -26,8 +27,8 @@ using namespace std;
 using namespace std::filesystem;
 using namespace nlohmann;
 
-using namespace ymerge;
 using namespace fly;
+using namespace auracle;
 
 namespace ymerge {
 
@@ -82,17 +83,18 @@ bool verbose = false;
 bool version = false;
 }  // namespace flag
 
-}  // namespace ymerge
-
-using namespace auracle;
-using namespace fly;
-
-bool ask(std::string question);
+bool ask(string question);
 void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbuild> &recipe, auracle::Pacman &pacman,
                         bool &missing_pkg_error);
 
+int argc;
+const char **argv;
+
 /// this is the actual main-function. it can throw exceptions, which need to be caught by the calling function.
-void ymerge::main_throws(int argc, const char **argv) {
+void main_throws(int argc_, const char **argv_) {
+  argc = argc_;
+  argv = argv_;
+
   if (argc == 1) {
     cout << usage << endl;
     return;
@@ -304,3 +306,27 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
 
   recipes.push_back(recipe);
 }
+
+void as_sudo() {
+  // if effective uid is 0, we are root
+  if (geteuid() == 0) return;
+
+  stringstream ss;
+  std::vector<std::string> argv_;
+  argv_.push_back("sudo");
+
+  for (int i = 0; i < argc; i++) {
+    argv_.push_back(argv[i]);
+    if (i > 0) ss << " ";
+    ss << argv[i];
+  }
+
+  fly::cmd_options opt;
+  string args_string = ss.str();
+  exec_print(opt, fmt::color::maroon, "sudo", args_string);
+
+  int result = fly::exec_prog(argv_, {});
+  throw not_root_exception(result);
+}
+
+}  // namespace ymerge
