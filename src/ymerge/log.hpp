@@ -114,16 +114,6 @@ FMT_INLINE void exec_opt(fly::cmd_options opt, T &&...args) {
   cmd_opt(opt, args...);
 }
 
-/**
- *  execute command and throw the specified error message, if the command exits with non-zero
- *  exit code.
- */
-template <typename... T>
-FMT_INLINE void exec_opt_throw(std::string throw_msg, fly::cmd_options opt, T &&...args) {
-  exec_print(opt, fmt::color::deep_sky_blue, "exec", args...);
-  if (cmd_opt_return_value(opt, args...) != 0) throw std::runtime_error(throw_msg);
-}
-
 template <typename... T>
 FMT_INLINE void exec(T &&...args) {
   exec_opt({}, args...);
@@ -139,6 +129,13 @@ FMT_INLINE void sudo_opt(fly::cmd_options opt, T &&...args) {
 template <typename... T>
 FMT_INLINE void sudo(T &&...args) {
   sudo_opt({}, args...);
+}
+
+template <typename... T>
+FMT_INLINE void git(std::filesystem::path git_dir, T &&...args) {
+  fly::cmd_options opt;
+  opt.working_dir = git_dir;
+  exec_opt(opt, "git", args...);
 }
 
 }  // namespace ymerge

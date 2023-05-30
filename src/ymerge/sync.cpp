@@ -29,9 +29,13 @@ void sync() {
       // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
       fly::cmd_options opt_rev_parse;
       opt_rev_parse.stdout_file = "/dev/null";
+      opt_rev_parse.working_dir = git_dir;
 
-      exec_opt_throw(fmt::format("pkg dir does exist but is not a git repo: \"{}\"", git_dir.c_str()), opt_rev_parse,
-                     "sudo", "git", "-C", git_dir.c_str(), "rev-parse", "--is-inside-work-tree");
+      try {
+        exec_opt(opt_rev_parse, "git", "rev-parse", "--is-inside-work-tree");
+      } catch (const std::runtime_error& err) {
+        throw std::runtime_error(fmt::format("pkg dir exists but is not a git repo: \"{}\"", git_dir.c_str()));
+      }
 
       // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone
       sudo("git", "-C", git_dir.c_str(), "fetch", "--depth", "1");

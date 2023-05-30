@@ -216,10 +216,16 @@ void main_throws(int argc_, const char **argv_) {
   }
 
   // verify git commits before proceeding
+  bool verify_error = false;
   for (auto &repo : config_::get_repos()) {
-    exec_opt_throw("could not verify git commit.", {}, "sudo", "git", "-C", (repo.data_path / "git").c_str(),
-                   "verify-commit", "HEAD");
+    try {
+      git(repo.data_path / "git", "verify-commit", "HEAD");
+    } catch (const std::runtime_error &err) {
+      error("could not verify repo '{}': {}", repo.name, repo.url);
+      verify_error = true;
+    }
   }
+  if (verify_error) throw std::invalid_argument("");
 
   auracle::Pacman pacman;
 
