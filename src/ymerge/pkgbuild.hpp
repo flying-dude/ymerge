@@ -10,6 +10,7 @@
 
 #include "config.hpp"
 #include "create_temporary_directory.hpp"
+#include "nspawn.hpp"
 #include "srcinfo.hpp"
 
 namespace ymerge {
@@ -20,13 +21,15 @@ struct pkgbuild {
   config_::ymerge_repo ymerge_repo;
   std::string working_name;  // tentative name used before reading .SRCINFO
 
-  std::optional<std::shared_ptr<fly::temporary_directory>> build_dir_ = std::nullopt;
-
   pkgbuild(config_::ymerge_repo ymerge_repo, std::string working_name)
       : ymerge_repo(ymerge_repo), working_name(working_name) {}
 
-  virtual ~pkgbuild(){};
+  virtual ~pkgbuild();
+
   static std::optional<std::shared_ptr<pkgbuild>> New(std::string);  // factory function for abstract type
+
+  bool build_dir_initialized = false;
+  inline std::filesystem::path get_build_dir() { return nspawn_dir / "makepkg" / working_name; }
 
   std::filesystem::path init_build_dir();
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;
@@ -62,8 +65,7 @@ struct pkgbuild_aur : pkgbuild {
 /// Specify a folder containing a PKGBUILD.
 struct pkgbuild_ymerge : pkgbuild {
   std::filesystem::path pkg_folder;
-  pkgbuild_ymerge(std::filesystem::path& pkg_folder, config_::ymerge_repo ymerge_repo,
-                  std::string working_name = "PKGBUILD")
+  pkgbuild_ymerge(std::filesystem::path& pkg_folder, config_::ymerge_repo ymerge_repo, std::string working_name)
       : pkgbuild(ymerge_repo, working_name), pkg_folder(pkg_folder) {}
   ~pkgbuild_ymerge() {}
   void init_build_dir(std::filesystem::path& build_dir);

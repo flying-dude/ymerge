@@ -21,9 +21,18 @@ TODO can you actually use nspawn w/o systemd running??)");
     cmd_opt(opt, "systemd-nspawn", "-D", nspawn_dir, args...);
   } else {
     std::filesystem::path &working_dir_ = *opt.working_dir;
-    const char * working_dir = working_dir_.c_str();
-    exec_print(opt, fmt::color::teal, "nspawn", working_dir, " :: ", args...);
-    cmd_opt(opt, "systemd-nspawn", "-D", nspawn_dir, fmt::format("--chdir={}", working_dir), args...);
+    const char *working_dir = working_dir_.c_str();
+
+    // remove working dir from actual opt, since it is for inside nspawn
+    fly::cmd_options opt_ = {
+        .stdout_file = opt.stdout_file, .stderr_file = opt.stderr_file, .working_dir = std::nullopt};
+
+    std::string dir = nspawn_dir.string();
+    dir.append(opt.working_dir->string());
+    fly::cmd_options opt_empty;
+    exec_print(opt_empty, fmt::color::teal, "nspawn", dir.c_str(), "::", args...);
+
+    cmd_opt(opt_, "systemd-nspawn", "-D", nspawn_dir, fmt::format("--chdir={}", working_dir), args...);
   }
 }
 

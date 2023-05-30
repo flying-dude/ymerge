@@ -17,6 +17,8 @@ void init_nspawn() {
   if (filesystem::exists(nspawn_dir)) return;
 
   try {
+    // TODO ask before creating nspawn
+
     info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
     filesystem::create_directories(nspawn_dir);
     init_nspawn_throws();
