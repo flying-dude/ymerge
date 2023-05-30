@@ -166,9 +166,14 @@ void main_throws(int argc_, const char **argv_) {
    * further actions, like installing packages, in one command. */
   if (flag::version) { std::cout << "ymerge version: " YMERGE_VERSION << std::endl; }
 
-  if (flag::sync) ymerge::sync();
+  if (flag::sync) {
+    as_sudo();
+    ymerge::sync();
+  }
 
   if (flag::update) {
+    as_sudo();
+
     if (flag::confirm)
       sudo("pacman", "--sync", "--sysupgrade", "--sysupgrade");
     else
@@ -179,6 +184,9 @@ void main_throws(int argc_, const char **argv_) {
 
   // if no packages are requested for install, we are done at this point.
   if (pkgs.v.empty()) return;
+
+  // it is probably a good idea to ask for root permissions at this stage
+  as_sudo();
 
   if (flag::remove) {
     sudo("pacman", "--remove", pkgs.v);
@@ -247,8 +255,6 @@ void main_throws(int argc_, const char **argv_) {
 
   // answer == yes
   for (shared_ptr<pkgbuild> &recipe : recipes) { recipe->merge(); }
-
-  return;
 }
 
 bool ask(string question) {
