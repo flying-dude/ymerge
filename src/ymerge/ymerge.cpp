@@ -311,19 +311,20 @@ void as_sudo() {
   // if effective uid is 0, we are root
   if (geteuid() == 0) return;
 
+  cout << "WARNING: ymerge was executed without superuser privileges." << endl;
+  cout << "re-invoking ymerge with sudo to obtain root permissions:" << endl;
+  cout << "=> sudo";
+
   stringstream ss;
-  std::vector<std::string> argv_;
+  vector<string> argv_;
   argv_.push_back("sudo");
 
   for (int i = 0; i < argc; i++) {
     argv_.push_back(argv[i]);
-    if (i > 0) ss << " ";
-    ss << argv[i];
+    cout << " " << argv[i];
   }
 
-  fly::cmd_options opt;
-  string args_string = ss.str();
-  exec_print(opt, fmt::color::maroon, "sudo", args_string);
+  cout << endl << endl;
 
   int result = fly::exec_prog(argv_, {});
   throw not_root_exception(result);
