@@ -38,10 +38,30 @@ include_directories(src/ymerge)
 include_directories(submodules/auracle/src)
 include_directories(submodules/pacman/src)
 
-file(GLOB_RECURSE libymerge_FILES src/ymerge/*)
+file(GLOB_RECURSE libymerge_FILES src/ymerge/* submodules/pacman/src/pacman/*)
 list(REMOVE_ITEM libymerge_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/ymerge/ymerge_main.cpp)
-add_library(libymerge_ STATIC ${libymerge_FILES})
-target_link_libraries(libymerge_ libauracle libpacman youtil)
+list(REMOVE_ITEM libpacman_FILES ${CMAKE_CURRENT_SOURCE_DIR}/submodules/pacman/src/pacman/pacman-conf.c)
+add_library(libymerge STATIC ${libymerge_FILES})
+target_link_libraries(libymerge libauracle youtil)
+
+# add pacman dependencies
+find_package(LibArchive REQUIRED)
+target_link_libraries(libymerge
+    PkgConfig::libalpm
+    LibArchive::LibArchive # https://cmake.org/cmake/help/latest/module/FindLibArchive.html
+)
+
+# pacman compile definitions
+target_compile_definitions(libymerge PUBLIC
+    CONFFILE="/etc/pacman.conf"
+    DBPATH="/var/lib/pacman/"
+    LOGFILE="/var/log/pacman.log"
+    CACHEDIR="/var/cache/pacman/pkg/"
+    HOOKDIR="/etc/pacman.d/hooks/"
+    GPGDIR="/etc/pacman.d/gnupg/"
+    ROOTDIR="/"
+    PACKAGE_VERSION="${YMERGE_VERSION}"
+    HAVE_STRNLEN="TRUE")
 
 add_executable(ymerge src/ymerge/ymerge_main.cpp)
 target_link_libraries(ymerge libymerge)
@@ -66,33 +86,8 @@ target_link_libraries(libauracle
     absl::time
 )
 
-file(GLOB_RECURSE libpacman_FILES submodules/pacman/src/pacman/*)
-list(REMOVE_ITEM libpacman_FILES ${CMAKE_CURRENT_SOURCE_DIR}/submodules/pacman/src/pacman/pacman-conf.c)
-add_library(libpacman STATIC ${libpacman_FILES})
-find_package(LibArchive REQUIRED)
-target_link_libraries(libpacman libymerge_
-    PkgConfig::libalpm
-    LibArchive::LibArchive # https://cmake.org/cmake/help/latest/module/FindLibArchive.html
-)
-
-target_compile_definitions(libpacman PUBLIC
-    CONFFILE="/etc/pacman.conf"
-    DBPATH="/var/lib/pacman/"
-    LOGFILE="/var/log/pacman.log"
-    CACHEDIR="/var/cache/pacman/pkg/"
-    HOOKDIR="/etc/pacman.d/hooks/"
-    GPGDIR="/etc/pacman.d/gnupg/"
-    ROOTDIR="/"
-    PACKAGE_VERSION="${YMERGE_VERSION}"
-    HAVE_STRNLEN="TRUE")
-
 add_executable(yman src/yman/main.cpp)
 target_link_libraries(yman libymerge)
-
-# use interface library to manage cyclic deps between pacman and ymerge
-# https://gitlab.kitware.com/cmake/cmake/-/issues/17978
-add_library(libymerge INTERFACE)
-target_link_libraries(libymerge INTERFACE libymerge_ libpacman)
 
 install(TARGETS ymerge youtil auracle libauracle yman libymerge)
 
