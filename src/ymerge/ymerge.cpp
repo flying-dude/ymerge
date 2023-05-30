@@ -319,7 +319,10 @@ void as_sudo() {
 
   cout << "WARNING: ymerge was executed without superuser privileges." << endl;
   cout << "re-invoking ymerge with sudo to obtain root permissions:" << endl;
-  cout << "=> sudo";
+  cout << "=> ";
+
+  auto ts = fmt::text_style(fg(fmt::color::maroon) | fmt::emphasis::bold);
+  fmt::print(ts, "sudo");
 
   stringstream ss;
   vector<string> argv_;
@@ -327,7 +330,7 @@ void as_sudo() {
 
   for (int i = 0; i < argc; i++) {
     argv_.push_back(argv[i]);
-    cout << " " << argv[i];
+    fmt::print(ts, " {}", argv[i]);
   }
 
   cout << endl << endl;
