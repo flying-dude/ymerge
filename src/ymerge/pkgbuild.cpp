@@ -82,10 +82,12 @@ srcinfo& pkgbuild::init_srcinfo() {
     opt.working_dir = path("/") / "makepkg" / working_name;
     opt.stdout_file = file;
     nspawn_opt(opt, "sudo", "--user=ymerge", "makepkg", "--printsrcinfo");
-    //nspawn("bash");
+    // nspawn("bash");
   }
 
-  info_ = *fly::file::read(file);
+  shared_ptr<string> sp = fly::file::read(file);
+  string& info_source = *sp.get();
+  info_ = info_source;
   return *info_;
 }
 
@@ -97,36 +99,22 @@ void pkgbuild::install() {
 
   cmd_options opt;
   opt.working_dir = path("/") / "makepkg" / working_name;
-
-  if (flag::confirm)
-    nspawn_opt(opt, "makepkg", "--syncdeps");
-  else
-    nspawn_opt(opt, "makepkg", "--syncdeps", "--noconfirm");
+  nspawn_opt(opt, "sudo", "--user=ymerge", "makepkg", "--syncdeps", "--noconfirm");
 
   string archive_name =
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
 
-  path build_dir = ymerge_repo.data_path / "pkg";
-  if (!std::filesystem::is_directory(build_dir)) filesystem::create_directories(build_dir);
+  path build_artifact_dir = ymerge_repo.data_path / "pkg";
+  if (!std::filesystem::is_directory(build_artifact_dir)) filesystem::create_directories(build_artifact_dir);
 
-  filesystem::rename(*opt.working_dir / archive_name, build_dir);
-  exec("repo-add", ymerge_repo.data_path / "pkg" / "curated-aur.db.tar", build_dir / archive_name);
+  path archive_path = nspawn_dir / "makepkg" / working_name / archive_name;
+  info("move: {} -> {}", archive_name, build_artifact_dir.c_str());
+  filesystem::rename(archive_path, build_artifact_dir / archive_name);
+  exec("repo-add", ymerge_repo.data_path / "pkg" / "curated-aur.db.tar", build_artifact_dir / archive_name);
 
   if (flag::makepkg) return;
 
-  if (flag::confirm)
-    exec("pacman", "--upgrade", build_dir / archive_name);
-  else
-    exec("pacman", "--upgrade", "--noconfirm", build_dir / archive_name);
-}
-
-void pkgbuild::remove() {
-  // when we remove a package we won't even init srcinfo. that means we have to use working_name instead of
-  // srcinfo->pkgname, since that one is N/A at this stage. probably these two are (always?) identical anyway.
-  if (flag::confirm)
-    exec("pacman", "--remove", working_name);
-  else
-    exec("pacman", "--remove", "--noconfirm", working_name);
+  exec("pacman", "--upgrade", "--noconfirm", build_artifact_dir / archive_name);
 }
 
 pkgbuild::~pkgbuild() {

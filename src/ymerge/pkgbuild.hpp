@@ -41,7 +41,6 @@ struct pkgbuild {
   // possible build steps
   void print_srcinfo();
   void install();
-  void remove();
 
   // obtain full package name including pkgver and pkgrel.
   std::string full_name() {

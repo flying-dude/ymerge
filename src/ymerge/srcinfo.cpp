@@ -9,8 +9,8 @@ namespace ymerge {
 
 srcinfo::srcinfo(string info) {
   auto lines = split(info, "\n");
-  for (auto &line : lines) {
-    line = strip(line);
+  for (string line : lines) {
+    line = trim_copy(line);
     if (line.empty()) continue;
     auto pair = split(line, " = ");
 

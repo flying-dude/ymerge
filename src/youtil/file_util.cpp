@@ -23,18 +23,19 @@ std::shared_ptr<std::string> read(std::filesystem::path path) {
 
   // Read contents
   const std::size_t &size = std::filesystem::file_size(path);
-  std::shared_ptr<std::string> content = make_shared<std::string>(size, '\0');
-  file.read(content->data(), size);
+  std::shared_ptr<std::string> shared = make_shared<std::string>(size, '\0');
+  std::string& content = *shared.get();
+  file.read(content.data(), size);
 
   // Close the file
   file.close();
 
-  return content;
+  return shared;
 }
 
-void write(std::filesystem::path p, const char * s) {
+void write(std::filesystem::path p, const char *s) {
   std::ofstream stream(p);
   stream << s;
 }
 
-}  // namespace fly
+}  // namespace fly::file
