@@ -12,7 +12,7 @@ using namespace std;
 namespace ymerge {
 
 void sync() {
-  for (auto& repo : config_::get_repos()) {
+  for (auto& repo : config_::git_repos()) {
     path pkg = repo.data_path / "pkg";
     if (!is_directory(pkg)) { filesystem::create_directories(pkg); }
 

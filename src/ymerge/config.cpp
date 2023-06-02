@@ -77,7 +77,7 @@ map<string, string>& ymerge_repo::get_aur_whitelist() {
   return *aur_whitelist;
 }
 
-vector<ymerge_repo>& get_repos() {
+vector<ymerge_repo>& git_repos() {
   init_config();
   return repos;
 }

@@ -14,6 +14,9 @@
 
 namespace ymerge::config_ {
 
+/**
+ * Information about the git repositories listed in /etc/ymerge.json
+ */
 struct ymerge_repo {
   std::string name;
   std::string url;
@@ -29,6 +32,7 @@ struct ymerge_repo {
   std::map<std::string, std::string>& get_aur_whitelist();
 };
 
-std::vector<ymerge_repo>& get_repos();
+/// returns the git repositories listed in /etc/ymerge.json
+std::vector<ymerge_repo>& git_repos();
 
 }  // namespace ymerge::config_
