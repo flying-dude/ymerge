@@ -270,7 +270,12 @@ bool ask(string question) {
   cout << question << " [Y/n] ";
 
   string answer = "Y";
-  if (flag::confirm) { cin >> answer; }
+
+  if (flag::confirm)
+    cin >> answer;
+  else
+    cout << endl;  // in script mode we need extra newline here
+
   if (answer.length() == 0) throw runtime_error("Received empty answer.");
 
   char c = tolower(answer.at(0));

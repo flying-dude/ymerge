@@ -28,11 +28,12 @@ struct pkgbuild {
 
   static std::optional<std::shared_ptr<pkgbuild>> New(std::string);  // factory function for abstract type
 
-  bool build_dir_initialized = false;
-  inline std::filesystem::path get_build_dir() { return nspawn_dir / "makepkg" / working_name; }
-
+  bool init_build_dir_ = false;
   void init_build_dir();
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;
+  inline std::filesystem::path get_build_dir() { return nspawn_dir / "makepkg" / working_name; }
+  void remove_build_dir(); // internal use only
+
   srcinfo& init_srcinfo();
 
   // build package or return error message, if something went wrong

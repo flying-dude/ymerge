@@ -36,10 +36,19 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
   return nullopt;
 }
 
-void pkgbuild::init_build_dir() {
+void pkgbuild::remove_build_dir() {
   path build_dir = get_build_dir();
+  info("Removing build dir: {}", build_dir.c_str());
+  filesystem::remove_all(build_dir);
+}
 
-  if (!build_dir_initialized) {
+void pkgbuild::init_build_dir() {
+  if (!init_build_dir_) {
+    path build_dir = get_build_dir();
+
+    // remove build dir in case it was not cleared up properly last time.
+    if (filesystem::exists(build_dir)) remove_build_dir();
+
     info("Creating build dir: {}", build_dir.c_str());
     filesystem::create_directories(build_dir);
 
@@ -47,7 +56,7 @@ void pkgbuild::init_build_dir() {
     exec("chown", "--recursive", "1000:1000", build_dir);
 
     init_build_dir(build_dir);
-    build_dir_initialized = true;
+    init_build_dir_ = true;
   }
 }
 
@@ -80,7 +89,8 @@ srcinfo& pkgbuild::init_srcinfo() {
     cmd_options opt;
     opt.stdout_file = file;
     path working_dir = path("/") / "makepkg" / working_name;
-    nspawn_opt(opt, "sh", "-c", fmt::format(R"(cd {}; sudo --user=ymerge makepkg --printsrcinfo)", working_dir.c_str()));
+    nspawn_opt(opt, "sh", "-c",
+               fmt::format(R"(cd {}; sudo --user=ymerge makepkg --printsrcinfo)", working_dir.c_str()));
   }
 
   shared_ptr<string> sp = fly::file::read(file);
@@ -115,11 +125,7 @@ void pkgbuild::install() {
 }
 
 pkgbuild::~pkgbuild() {
-  if (build_dir_initialized) {
-    path build_dir = get_build_dir();
-    info("Removing build dir: {}", build_dir.c_str());
-    filesystem::remove_all(build_dir);
-  }
+  if (init_build_dir_) remove_build_dir();
 }
 
 }  // namespace ymerge

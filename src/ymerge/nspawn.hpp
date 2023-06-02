@@ -19,6 +19,8 @@ FMT_INLINE void nspawn_opt(fly::cmd_options opt, T &&...args) {
 
   bool use_nspawn = ymerge::cfg::use_nspawn();
 
+  if (system("which systemd-nspawn > /dev/null 2>&1") != 0) use_nspawn = false;
+
   // check if systemd is actually running, before invoking systemd-nspawn
   // we might be running inside a container or chroot, where systemd isn't started
   // https://superuser.com/questions/1017959/how-to-know-if-i-am-using-systemd-on-linux/1631444#1631444
