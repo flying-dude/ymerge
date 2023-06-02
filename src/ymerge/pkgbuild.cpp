@@ -37,16 +37,16 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
 }
 
 path pkgbuild::init_build_dir() {
-  init_nspawn();
   path build_dir = get_build_dir();
 
   if (!build_dir_initialized) {
     info("Creating build dir: {}", build_dir.c_str());
     filesystem::create_directories(build_dir);
 
-    init_build_dir(build_dir);
-    nspawn("chown", "--recursive", "ymerge:ymerge", "/makepkg/" + working_name);
+    // give permissions to user ymerge (uid 1000) inside container
+    exec("chown", "--recursive", "1000:1000", build_dir);
 
+    init_build_dir(build_dir);
     build_dir_initialized = true;
   }
 

@@ -14,12 +14,11 @@ namespace ymerge {
 std::filesystem::path nspawn_dir = std::filesystem::path("/") / "var" / "cache" / "ymerge" / "nspawn";
 
 void init_nspawn_throws();
-void init_nspawn() {
+void init_sandbox() {
   if (filesystem::exists(nspawn_dir)) return;
 
   try {
     // TODO ask before creating nspawn
-
     info("nspawn directory not present, creating it: {}", nspawn_dir.c_str());
     filesystem::create_directories(nspawn_dir);
     init_nspawn_throws();
@@ -68,7 +67,7 @@ root ALL=(ALL) ALL
 )");
 
   // creating a user, since makepkg will complain if we run it as root
-  nspawn("useradd", "--create-home", "--groups", "wheel", "ymerge");
+  nspawn("useradd", "--create-home", "--groups", "wheel", "--uid", "1000", "ymerge");
 }
 
 }  // namespace ymerge

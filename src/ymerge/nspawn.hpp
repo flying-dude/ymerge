@@ -1,24 +1,35 @@
+#pragma once
+
+#include "cfg.hpp"
 #include "log.hpp"
 
 namespace ymerge {
 
 extern std::filesystem::path nspawn_dir;
 
-extern void init_nspawn();
+extern void init_sandbox();
 
 template <typename... T>
 FMT_INLINE void nspawn_opt(fly::cmd_options opt, T &&...args) {
+  bool use_nspawn = ymerge::cfg::use_nspawn();
+
   // check if systemd is actually running, before invoking systemd-nspawn
   // we might be running inside a container or chroot, where systemd isn't started
   // https://superuser.com/questions/1017959/how-to-know-if-i-am-using-systemd-on-linux/1631444#1631444
   std::filesystem::path sd_booted = std::filesystem::path("/") / "run" / "systemd" / "system";
-  if (!std::filesystem::is_directory(sd_booted))
-    throw std::runtime_error(R"(Cannot initialize build container for systemd-nspawn. systemd is not running.
-TODO can you actually use nspawn w/o systemd running??)");
+  if (use_nspawn && !std::filesystem::is_directory(sd_booted)) {
+    warn(R"(Cannot initialize build container for systemd-nspawn. systemd is not running.)");
+    use_nspawn = false;
+  }
 
   if (!opt.working_dir) {
-    exec_print(opt, fmt::color::teal, "nspawn", args...);
-    cmd_opt(opt, "systemd-nspawn", "-D", nspawn_dir, args...);
+    exec_print(opt, fmt::color::teal, use_nspawn ? "nspawn" : "chroot", args...);
+
+    if (use_nspawn) {
+      cmd_opt(opt, "systemd-nspawn", "-D", nspawn_dir, args...);
+    } else {
+      cmd_opt(opt, "chroot", nspawn_dir, args...);
+    }
   } else {
     std::filesystem::path &working_dir_ = *opt.working_dir;
     const char *working_dir = working_dir_.c_str();
@@ -30,7 +41,7 @@ TODO can you actually use nspawn w/o systemd running??)");
     std::string dir = nspawn_dir.string();
     dir.append(opt.working_dir->string());
     fly::cmd_options opt_empty;
-    exec_print(opt_empty, fmt::color::teal, "nspawn", dir.c_str(), "::", args...);
+    exec_print(opt_empty, fmt::color::teal, use_nspawn ? "nspawn" : "chroot", dir.c_str(), "::", args...);
 
     cmd_opt(opt_, "systemd-nspawn", "-D", nspawn_dir, fmt::format("--chdir={}", working_dir), args...);
   }
