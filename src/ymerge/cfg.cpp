@@ -33,12 +33,6 @@ vector<ymerge_repo>& git_repos() {
   return git_repos_;
 }
 
-static bool use_nspawn_ = false;
-bool use_nspawn() {
-  init_config();
-  return use_nspawn_;
-}
-
 static void print_sample_config() { fmt::print("\n\n {} \n\n", default_config_ymerge); }
 
 // TODO read json config file in /etc/ymerge.json
@@ -75,9 +69,6 @@ static void init_config() {
       git_repos_.push_back({name, url, allowed_signers});
     }
   }
-
-  // check if use-nspawn flag is set
-  if (j.contains("use-nspawn")) { use_nspawn_ = j["use-nspawn"]; }
 
   config_initialized = true;
 }

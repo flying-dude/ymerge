@@ -16,6 +16,7 @@ extern void as_sudo();
 void main_throws(int argc, const char **argv);
 
 namespace flag {
+extern bool chroot;
 extern bool color;
 extern bool confirm;
 extern bool makepkg;

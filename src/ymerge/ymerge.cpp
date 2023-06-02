@@ -46,6 +46,7 @@ Options:
     --verbose      increase verbosity of output
     --yes -y       skip confirmation and pick default answers automatically
 
+    --chroot       use chroot instead of nspawn for sandboxing
     --makepkg      only create the package archive but do not install
     --pretend -p   show what would be done and exit
     --remove -r    remove (uninstall) packages
@@ -70,6 +71,7 @@ Help: ymerge --help
 Version: )" YMERGE_VERSION;
 
 namespace flag {
+bool chroot = false;
 bool color = true;
 bool confirm = true;
 bool makepkg = false;
@@ -108,6 +110,8 @@ void main_throws(int argc_, const char **argv_) {
     if (arg == "-h" || arg == "--help") {
       cout << help << endl;
       return;
+    } else if (arg == "--chroot") {
+      flag::chroot = true;
     } else if (arg == "--makepkg") {
       flag::makepkg = true;
     } else if (arg == "--nocolor") {
