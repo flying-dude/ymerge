@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 
+#include "cfg.hpp"
 #include "file_util.hpp"
 
 using namespace std;

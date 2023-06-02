@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "file_util.hpp"
+#include "log.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -24,7 +25,21 @@ const char* default_config_ymerge = R"(
 )";
 
 static bool config_initialized = false;
-static vector<ymerge_repo> repos;
+static void init_config();
+
+static vector<ymerge_repo> git_repos_;
+vector<ymerge_repo>& git_repos() {
+  init_config();
+  return git_repos_;
+}
+
+static bool use_nspawn_ = false;
+bool use_nspawn() {
+  init_config();
+  return use_nspawn_;
+}
+
+static void print_sample_config() { fmt::print("\n\n {} \n\n", default_config_ymerge); }
 
 // TODO read json config file in /etc/ymerge.json
 static void init_config() {
@@ -39,10 +54,17 @@ static void init_config() {
   json j = json::parse(*config);
 
   // obtain list of repositories
-  {
-    if (!j.contains("repos") || !j["repos"].is_object() || j["repos"].empty())
-      throw runtime_error("/etc/ymerge.json -- no repositories specified");
-
+  if (!j.contains("repos")) {
+    warn("/etc/ymerge.json -- entry 'repos' missing in json file");
+    print_sample_config();
+  } else if (!j.contains("repos") || j["repos"].empty()) {
+    warn("/etc/ymerge.json -- no repositories specified. 'repos' object is empty.");
+    print_sample_config();
+  } else if (!j["repos"].is_object()) {
+    warn("/etc/ymerge.json -- entry 'repos' has the wrong type. needs to be of type object, found: {}",
+         j["repos"].type_name());
+    print_sample_config();
+  } else {
     for (auto const& repo : j["repos"].items()) {
       string name = repo.key();
       string url = repo.value()["url"];
@@ -50,16 +72,14 @@ static void init_config() {
       vector<string> allowed_signers;
       for (auto& signer : repo.value()["allowed-signers"]) allowed_signers.push_back(signer);
 
-      repos.push_back({name, url, allowed_signers});
+      git_repos_.push_back({name, url, allowed_signers});
     }
   }
 
-  config_initialized = true;
-}
+  // check if use-nspawn flag is set
+  if (j.contains("use-nspawn")) { use_nspawn_ = j["use-nspawn"]; }
 
-vector<ymerge_repo>& git_repos() {
-  init_config();
-  return repos;
+  config_initialized = true;
 }
 
 }  // namespace ymerge::cfg

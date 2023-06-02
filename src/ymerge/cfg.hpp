@@ -14,4 +14,7 @@ namespace ymerge::cfg {
 /// returns the git repositories listed in /etc/ymerge.json
 std::vector<ymerge_repo>& git_repos();
 
+/// if true, use nspawn for sandbox building. otherwise fallback to using chroot.
+bool use_nspawn();
+
 }  // namespace ymerge::cfg
