@@ -57,7 +57,7 @@ void sync() {
   }
 
   // TODO sync binaries repos here as well, using built-in pacman facilities
-  // sudo("pacman", "--sync", "--refresh");
+  // exec("pacman", "--sync", "--refresh");
 }
 
 }  // namespace ymerge

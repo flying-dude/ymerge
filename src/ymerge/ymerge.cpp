@@ -323,16 +323,24 @@ void as_sudo() {
   // if effective uid is 0, we are root
   if (geteuid() == 0) return;
 
+  const char *sudo = nullptr;
+
+  // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
+  if (system("which sudo > /dev/null 2>&1") == 0) sudo = "sudo";
+  if (system("which doas > /dev/null 2>&1") == 0) sudo = "doas";
+
+  if (sudo == nullptr) { throw std::runtime_error("please execute ymerge as root."); }
+
   cout << "WARNING: ymerge was executed without superuser privileges." << endl;
-  cout << "re-invoking ymerge with sudo to obtain root permissions:" << endl;
+  cout << "re-invoking ymerge with '" << sudo << "' to obtain root permissions:" << endl;
   cout << "=> ";
 
   auto ts = fmt::text_style(fg(fmt::color::maroon) | fmt::emphasis::bold);
-  fmt::print(ts, "sudo");
+  fmt::print(ts, sudo);
 
   stringstream ss;
   vector<string> argv_;
-  argv_.push_back("sudo");
+  argv_.push_back(sudo);
 
   for (int i = 0; i < argc; i++) {
     argv_.push_back(argv[i]);
