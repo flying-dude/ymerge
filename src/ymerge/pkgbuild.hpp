@@ -31,7 +31,7 @@ struct pkgbuild {
   bool build_dir_initialized = false;
   inline std::filesystem::path get_build_dir() { return nspawn_dir / "makepkg" / working_name; }
 
-  std::filesystem::path init_build_dir();
+  void init_build_dir();
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;
   srcinfo& init_srcinfo();
 

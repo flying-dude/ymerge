@@ -7,7 +7,7 @@ namespace ymerge {
 
 extern std::filesystem::path nspawn_dir;
 
-extern void init_sandbox();
+extern void init_nspawn();
 
 template <typename... T>
 FMT_INLINE void nspawn_opt(fly::cmd_options opt, T &&...args) {

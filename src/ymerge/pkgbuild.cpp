@@ -36,7 +36,7 @@ optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
   return nullopt;
 }
 
-path pkgbuild::init_build_dir() {
+void pkgbuild::init_build_dir() {
   path build_dir = get_build_dir();
 
   if (!build_dir_initialized) {
@@ -49,14 +49,9 @@ path pkgbuild::init_build_dir() {
     init_build_dir(build_dir);
     build_dir_initialized = true;
   }
-
-  return get_build_dir();
 }
 
 void pkgbuild::merge() {
-  path build_dir = init_build_dir();
-  info("build dir: {}", build_dir.c_str());
-
   if (step::srcinfo() || step::install()) init_srcinfo();
   if (step::srcinfo()) print_srcinfo();
   if (step::install()) install();
@@ -75,14 +70,16 @@ void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
 srcinfo& pkgbuild::init_srcinfo() {
   if (info_.has_value()) return info_.value();
 
-  path build_dir = init_build_dir();
+  init_nspawn();
+  init_build_dir();
+
+  path build_dir = get_build_dir();
   path file = build_dir / ".SRCINFO";
   if (!exists(file)) {
     cmd_options opt;
     opt.working_dir = path("/") / "makepkg" / working_name;
     opt.stdout_file = file;
     nspawn_opt(opt, "sudo", "--user=ymerge", "makepkg", "--printsrcinfo");
-    // nspawn("bash");
   }
 
   shared_ptr<string> sp = fly::file::read(file);
