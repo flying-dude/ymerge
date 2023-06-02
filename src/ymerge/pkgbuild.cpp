@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include "cmd.hpp"
-#include "config.hpp"
+#include "cfg.hpp"
 #include "create_temporary_directory.hpp"
 #include "file_util.hpp"
 #include "log.hpp"
@@ -20,7 +20,7 @@ namespace ymerge {
 
 optional<shared_ptr<pkgbuild>> pkgbuild::New(string pkg_name) {
   // read PKGBUILD file from available git repos
-  for (auto& r : config_::git_repos()) {
+  for (auto& r : cfg::git_repos()) {
     path recipe_dir = r.data_path / "git" / "pkg" / pkg_name;
     if (exists(recipe_dir)) {
       shared_ptr<pkgbuild> result = make_shared<pkgbuild_ymerge>(recipe_dir, r, pkg_name);

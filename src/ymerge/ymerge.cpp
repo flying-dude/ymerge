@@ -8,7 +8,7 @@
 
 #include "auracle/auracle.hh"
 #include "cmd.hpp"
-#include "config.hpp"
+#include "cfg.hpp"
 #include "file_util.hpp"
 #include "log.hpp"
 #include "pkgbuild.hpp"
@@ -197,7 +197,7 @@ void main_throws(int argc_, const char **argv_) {
   {
     bool missing_pkg_db = false;
 
-    for (auto &repo : config_::git_repos()) {
+    for (auto &repo : cfg::git_repos()) {
       if (!exists(repo.data_path / "git")) {
         fmt::print("Package dir not present: {}\n", (repo.data_path / "git" / "pkg").c_str());
         missing_pkg_db = true;
@@ -217,7 +217,7 @@ void main_throws(int argc_, const char **argv_) {
 
   // verify git commits before proceeding
   bool verify_error = false;
-  for (auto &repo : config_::git_repos()) {
+  for (auto &repo : cfg::git_repos()) {
     try {
       git(repo.data_path / "git", "verify-commit", "HEAD");
     } catch (const std::runtime_error &err) {

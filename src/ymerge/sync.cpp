@@ -5,14 +5,14 @@ using namespace std::filesystem;
 #include <iostream>
 using namespace std;
 
-#include "config.hpp"
+#include "cfg.hpp"
 #include "create_temporary_file.hpp"
 #include "log.hpp"
 
 namespace ymerge {
 
 void sync() {
-  for (auto& repo : config_::git_repos()) {
+  for (auto& repo : cfg::git_repos()) {
     path pkg = repo.data_path / "pkg";
     if (!is_directory(pkg)) { filesystem::create_directories(pkg); }
 

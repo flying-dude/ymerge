@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "config.hpp"
+#include "cfg.hpp"
 #include "create_temporary_directory.hpp"
 #include "nspawn.hpp"
 #include "srcinfo.hpp"
@@ -18,10 +18,10 @@ namespace ymerge {
 /// A directory containing an Arch Linux PKGBUILD.
 struct pkgbuild {
   // the ymerge repo from which this PKGBUILD comes
-  config_::ymerge_repo ymerge_repo;
+  cfg::ymerge_repo ymerge_repo;
   std::string working_name;  // tentative name used before reading .SRCINFO
 
-  pkgbuild(config_::ymerge_repo ymerge_repo, std::string working_name)
+  pkgbuild(cfg::ymerge_repo ymerge_repo, std::string working_name)
       : ymerge_repo(ymerge_repo), working_name(working_name) {}
 
   virtual ~pkgbuild();
@@ -55,7 +55,7 @@ struct pkgbuild {
 /// Obtain a PKGBUILD from Arch Linux AUR.
 struct pkgbuild_aur : pkgbuild {
   std::string git_hash;
-  pkgbuild_aur(config_::ymerge_repo ymerge_repo, std::string working_name, std::string git_hash)
+  pkgbuild_aur(cfg::ymerge_repo ymerge_repo, std::string working_name, std::string git_hash)
       : pkgbuild(ymerge_repo, working_name), git_hash(git_hash) {}
   ~pkgbuild_aur() {}
   void init_build_dir(std::filesystem::path& build_dir);
@@ -64,7 +64,7 @@ struct pkgbuild_aur : pkgbuild {
 /// Specify a folder containing a PKGBUILD.
 struct pkgbuild_ymerge : pkgbuild {
   std::filesystem::path pkg_folder;
-  pkgbuild_ymerge(std::filesystem::path& pkg_folder, config_::ymerge_repo ymerge_repo, std::string working_name)
+  pkgbuild_ymerge(std::filesystem::path& pkg_folder, cfg::ymerge_repo ymerge_repo, std::string working_name)
       : pkgbuild(ymerge_repo, working_name), pkg_folder(pkg_folder) {}
   ~pkgbuild_ymerge() {}
   void init_build_dir(std::filesystem::path& build_dir);

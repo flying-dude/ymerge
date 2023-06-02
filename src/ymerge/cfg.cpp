@@ -2,7 +2,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-#include "config.hpp"
+#include "cfg.hpp"
 #include "file_util.hpp"
 
 using namespace std;
@@ -10,7 +10,7 @@ using namespace std::filesystem;
 
 #include <iostream>
 
-namespace ymerge::config_ {
+namespace ymerge::cfg {
 
 const char* default_config_ymerge = R"(
 {

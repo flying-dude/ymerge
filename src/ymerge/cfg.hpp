@@ -12,7 +12,7 @@
  * will be used in that case (see config.cpp).
  */
 
-namespace ymerge::config_ {
+namespace ymerge::cfg {
 
 /**
  * Information about the git repositories listed in /etc/ymerge.json
