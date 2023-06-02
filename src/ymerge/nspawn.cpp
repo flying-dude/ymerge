@@ -69,4 +69,6 @@ root ALL=(ALL) ALL
   nspawn("useradd", "--create-home", "--groups", "wheel", "--uid", "1000", "ymerge");
 }
 
+void prepare_chroot() {}
+
 }  // namespace ymerge

@@ -76,10 +76,11 @@ srcinfo& pkgbuild::init_srcinfo() {
   path build_dir = get_build_dir();
   path file = build_dir / ".SRCINFO";
   if (!exists(file)) {
+    // TODO implement "makepkg --printsrcinfo" inside ymerge
     cmd_options opt;
-    opt.working_dir = path("/") / "makepkg" / working_name;
     opt.stdout_file = file;
-    nspawn_opt(opt, "sudo", "--user=ymerge", "makepkg", "--printsrcinfo");
+    path working_dir = path("/") / "makepkg" / working_name;
+    nspawn_opt(opt, "sh", "-c", fmt::format(R"(cd {}; sudo --user=ymerge makepkg --printsrcinfo)", working_dir.c_str()));
   }
 
   shared_ptr<string> sp = fly::file::read(file);
@@ -94,9 +95,8 @@ void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 void pkgbuild::install() {
   init_build_dir();
 
-  cmd_options opt;
-  opt.working_dir = path("/") / "makepkg" / working_name;
-  nspawn_opt(opt, "sudo", "--user=ymerge", "makepkg", "--syncdeps", "--noconfirm");
+  path working_dir = path("/") / "makepkg" / working_name;
+  nspawn("sh", "-c", fmt::format(R"(cd {}; sudo --user=ymerge makepkg --syncdeps --noconfirm)", working_dir.c_str()));
 
   string archive_name =
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
