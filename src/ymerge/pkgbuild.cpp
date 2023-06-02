@@ -4,8 +4,8 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-#include "cmd.hpp"
 #include "cfg.hpp"
+#include "cmd.hpp"
 #include "create_temporary_directory.hpp"
 #include "file_util.hpp"
 #include "log.hpp"

@@ -7,8 +7,8 @@
 #include <sstream>
 
 #include "auracle/auracle.hh"
-#include "cmd.hpp"
 #include "cfg.hpp"
+#include "cmd.hpp"
 #include "file_util.hpp"
 #include "log.hpp"
 #include "pkgbuild.hpp"
