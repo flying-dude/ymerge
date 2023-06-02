@@ -69,6 +69,36 @@ root ALL=(ALL) ALL
   nspawn("useradd", "--create-home", "--groups", "wheel", "--uid", "1000", "ymerge");
 }
 
-void prepare_chroot() {}
+static void cleanup_chroot() {
+  info("Cleaning up chroot...");
+
+  exec("umount", (nspawn_dir / "dev").c_str());
+  exec("umount", (nspawn_dir / "proc").c_str());
+  exec("umount", (nspawn_dir / "sys").c_str());
+}
+
+bool prepare_chroot_ = false;
+void prepare_chroot() {
+  if (prepare_chroot_) return;
+
+  info("Preparing chroot...");
+
+  filesystem::path from = filesystem::path("/") / "etc" / "resolv.conf";
+  filesystem::path to = nspawn_dir / "etc" / "resolv.conf";
+
+  fly::cmd_options info_opt;
+  info("{} -> {}", from.c_str(), to.c_str());
+
+  filesystem::copy_options copy_opt = filesystem::copy_options::update_existing;
+  filesystem::copy(from, to, copy_opt);
+
+  exec("mount", "--bind", "/dev", (nspawn_dir / "dev").c_str());
+  exec("mount", "--bind", "/proc", (nspawn_dir / "proc").c_str());
+  exec("mount", "--bind", "/sys", (nspawn_dir / "sys").c_str());
+
+  std::atexit(cleanup_chroot);
+
+  prepare_chroot_ = true;
+}
 
 }  // namespace ymerge
