@@ -10,7 +10,6 @@
 
 #include "cfg.hpp"
 #include "create_temporary_directory.hpp"
-#include "nspawn.hpp"
 #include "srcinfo.hpp"
 
 namespace ymerge {
@@ -18,11 +17,11 @@ namespace ymerge {
 /// A directory containing an Arch Linux PKGBUILD.
 struct pkgbuild {
   // the ymerge repo from which this PKGBUILD comes
-  cfg::ymerge_repo ymerge_repo;
+  cfg::ymerge_repo repo;
   std::string working_name;  // tentative name used before reading .SRCINFO
 
   pkgbuild(cfg::ymerge_repo ymerge_repo, std::string working_name)
-      : ymerge_repo(ymerge_repo), working_name(working_name) {}
+      : repo(ymerge_repo), working_name(working_name) {}
 
   virtual ~pkgbuild();
 
@@ -31,7 +30,7 @@ struct pkgbuild {
   bool init_build_dir_ = false;
   void init_build_dir();
   virtual void init_build_dir(std::filesystem::path& build_dir) = 0;
-  inline std::filesystem::path get_build_dir() { return nspawn_dir / "makepkg" / working_name; }
+  inline std::filesystem::path get_build_dir() { return repo.data_path / "makepkg" / working_name; }
   void remove_build_dir(); // internal use only
 
   srcinfo& init_srcinfo();

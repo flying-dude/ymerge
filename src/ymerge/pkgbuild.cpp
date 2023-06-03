@@ -52,10 +52,11 @@ void pkgbuild::init_build_dir() {
     info("Creating build dir: {}", build_dir.c_str());
     filesystem::create_directories(build_dir);
 
-    // give permissions to user ymerge (uid 1000) inside container
-    exec("chown", "--recursive", "1000:1000", build_dir);
-
     init_build_dir(build_dir);
+
+    // after full init we pass ownership to our build user "ymerge"
+    exec("chown", "--recursive", "ymerge:ymerge", build_dir);
+
     init_build_dir_ = true;
   }
 }
@@ -79,7 +80,6 @@ void pkgbuild_ymerge::init_build_dir(std::filesystem::path& build_dir) {
 srcinfo& pkgbuild::init_srcinfo() {
   if (info_.has_value()) return info_.value();
 
-  init_nspawn();
   init_build_dir();
 
   path build_dir = get_build_dir();
@@ -87,10 +87,9 @@ srcinfo& pkgbuild::init_srcinfo() {
   if (!exists(file)) {
     // TODO implement "makepkg --printsrcinfo" inside ymerge
     cmd_options opt;
+    opt.working_dir = build_dir;
     opt.stdout_file = file;
-    path working_dir = path("/") / "makepkg" / working_name;
-    nspawn_opt(opt, "sh", "-c",
-               fmt::format(R"(cd {}; sudo --user=ymerge makepkg --printsrcinfo)", working_dir.c_str()));
+    exec_opt(opt, "sudo", "--user=ymerge", "makepkg", "--printsrcinfo");
   }
 
   shared_ptr<string> sp = fly::file::read(file);
@@ -105,19 +104,20 @@ void pkgbuild::print_srcinfo() { println("{}", info_->to_string().c_str()); }
 void pkgbuild::install() {
   init_build_dir();
 
-  path working_dir = path("/") / "makepkg" / working_name;
-  nspawn("sh", "-c", fmt::format(R"(cd {}; sudo --user=ymerge makepkg --syncdeps --noconfirm)", working_dir.c_str()));
+  cmd_options opt;
+  opt.working_dir = get_build_dir();
+  exec_opt(opt, "sudo", "--user=ymerge", "makepkg", "--syncdeps", "--noconfirm");
 
   string archive_name =
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
 
-  path build_artifact_dir = ymerge_repo.build_path();
+  path build_artifact_dir = repo.build_path();
   if (!std::filesystem::is_directory(build_artifact_dir)) filesystem::create_directories(build_artifact_dir);
 
-  path archive_path = nspawn_dir / "makepkg" / working_name / archive_name;
+  path archive_path = get_build_dir() / archive_name;
   info("move: {} -> {}", archive_name, build_artifact_dir.c_str());
   filesystem::rename(archive_path, build_artifact_dir / archive_name);
-  exec("repo-add", ymerge_repo.build_path() / "curated-aur.db.tar", build_artifact_dir / archive_name);
+  exec("repo-add", repo.build_path() / "curated-aur.db.tar", build_artifact_dir / archive_name);
 
   if (flag::makepkg) return;
 
