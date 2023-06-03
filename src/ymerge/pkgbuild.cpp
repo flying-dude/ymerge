@@ -111,13 +111,13 @@ void pkgbuild::install() {
   string archive_name =
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");
 
-  path build_artifact_dir = ymerge_repo.data_path / "pkg";
+  path build_artifact_dir = ymerge_repo.build_path();
   if (!std::filesystem::is_directory(build_artifact_dir)) filesystem::create_directories(build_artifact_dir);
 
   path archive_path = nspawn_dir / "makepkg" / working_name / archive_name;
   info("move: {} -> {}", archive_name, build_artifact_dir.c_str());
   filesystem::rename(archive_path, build_artifact_dir / archive_name);
-  exec("repo-add", ymerge_repo.data_path / "pkg" / "curated-aur.db.tar", build_artifact_dir / archive_name);
+  exec("repo-add", ymerge_repo.build_path() / "curated-aur.db.tar", build_artifact_dir / archive_name);
 
   if (flag::makepkg) return;
 

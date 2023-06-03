@@ -14,7 +14,9 @@ struct ymerge_repo {
   std::string name;
   std::string url;
   std::vector<std::string> allowed_signers;
+
   std::filesystem::path data_path;
+  inline std::filesystem::path build_path() { return data_path / "build"; };
 
   ymerge_repo(std::string name, std::string url, std::vector<std::string> allowed_signers);
 

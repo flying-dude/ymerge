@@ -13,7 +13,7 @@ namespace ymerge {
 
 void sync() {
   for (auto& repo : cfg::git_repos()) {
-    path pkg = repo.data_path / "pkg";
+    path pkg = repo.build_path();
     if (!is_directory(pkg)) { filesystem::create_directories(pkg); }
 
     path db = pkg / (repo.name + ".db.tar");
