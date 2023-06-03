@@ -42,7 +42,7 @@ int exec_prog(vector<string> argv_, cmd_options opt) {
     /* note that unless exevpe fails, this program is also terminates when calling execvpe
      * (that is why we need to fork before starting the external program). */
     execvp(argv[0], (char **const)&argv[0]);
-    perror("execvpe failed");
+    perror("execvp failed");
     exit(1);
   }
 

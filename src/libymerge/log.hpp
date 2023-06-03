@@ -7,7 +7,7 @@
 
 #include "cmd.hpp"
 #include "ymerge.hpp"
-#include "ymerge_main.hpp"
+#include "handle_exceptions.hpp"
 
 /** Logging functions based on fmtlib with optional colored output. */
 

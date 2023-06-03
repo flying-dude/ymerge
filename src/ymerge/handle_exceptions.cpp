@@ -1,4 +1,4 @@
-#include "ymerge_main.hpp"
+#include "handle_exceptions.hpp"
 
 #include <exception>
 #include <string>
@@ -7,7 +7,7 @@
 #include "log.hpp"
 #include "ymerge.hpp"
 
-int main(int argc, const char **argv) {
+int handle_exceptions(int argc, const char **argv) {
   try {
     ymerge::main_throws(argc, argv);
   } catch (const ymerge::not_root_exception &err) { return err.result; } catch (const std::exception &err) {

@@ -10,11 +10,11 @@
 #include "cfg.hpp"
 #include "cmd.hpp"
 #include "file_util.hpp"
+#include "handle_exceptions.hpp"
 #include "log.hpp"
 #include "pkgbuild.hpp"
 #include "sync.hpp"
 #include "unique_list.hpp"
-#include "ymerge_main.hpp"
 
 /**
  * Package manager for the curated-aur. The command-line interface is inspired by Gentoo Portage:
@@ -337,7 +337,8 @@ void as_sudo() {
   if (sudo == nullptr) { throw std::runtime_error("please execute ymerge as root."); }
 
   string msg = fmt::format(R"(ymerge was executed without superuser privileges.
-re-invoking ymerge with "{}" to obtain root permissions:)", sudo);
+re-invoking ymerge with "{}" to obtain root permissions:)",
+                           sudo);
   warn("{}", msg.c_str());
   cout << "=> ";
 
