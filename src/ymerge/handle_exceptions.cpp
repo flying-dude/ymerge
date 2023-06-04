@@ -10,6 +10,7 @@
 int handle_exceptions(int argc, const char **argv) {
   try {
     ymerge::main_throws(argc, argv);
+    return 0;
   } catch (const ymerge::not_root_exception &err) { return err.result; } catch (const std::exception &err) {
     std::string msg = err.what();
     if (msg.length() > 0) ymerge::error("{}", err.what());
