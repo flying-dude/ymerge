@@ -26,15 +26,19 @@ void sync() {
       filesystem::create_directories(git_dir);
       exec("git", "clone", "--depth", "1", "--", repo.url, git_dir);
     } else {
-      // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
-      fly::cmd_options opt_rev_parse;
-      opt_rev_parse.stdout_file = "/dev/null";
-      opt_rev_parse.working_dir = git_dir;
-
       try {
-        exec_opt(opt_rev_parse, "git", "rev-parse", "--is-inside-work-tree");
+        // https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
+        // TODO https://libgit2.org/libgit2/#HEAD/group/revparse
+        // https://www.reddit.com/r/AskProgramming/comments/7m6h2b/checking_if_a_folder_is_a_git_repository_using/
+        // https://libgit2.org/libgit2/#v0.25.1/group/repository/git_repository_discover
+        fly::cmd_options opt_rev_parse;
+        opt_rev_parse.stdout_file = "/dev/null";
+        opt_rev_parse.stderr_file = "/dev/null";
+        opt_rev_parse.working_dir = git_dir;
+        cmd_opt(opt_rev_parse, "git", "rev-parse", "--is-inside-work-tree");
       } catch (const std::runtime_error& err) {
-        throw std::runtime_error(fmt::format("pkg dir exists but is not a git repo: \"{}\"", git_dir.c_str()));
+        error("pkg dir exists but is not a git repo: \"{}\"", git_dir.c_str());
+        throw err;
       }
 
       // https://stackoverflow.com/questions/41075972/how-to-update-a-git-shallow-clone

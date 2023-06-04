@@ -144,7 +144,7 @@ target_link_libraries(libauracle
     absl::time
 )
 
-add_executable(yman src/yman/main.cpp)
+add_executable(yman src/yman/yman.cpp)
 target_link_libraries(yman libymerge)
 
 install(TARGETS ymerge youtil auracle yman libymerge)
