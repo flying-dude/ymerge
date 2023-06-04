@@ -336,9 +336,9 @@ void as_sudo() {
 
   if (sudo == nullptr) { throw std::runtime_error("please execute ymerge as root."); }
 
-  string msg = fmt::format(R"(ymerge was executed without superuser privileges.
-re-invoking ymerge with "{}" to obtain root permissions:)",
-                           sudo);
+  string msg = fmt::format(R"({} was executed without superuser privileges.
+re-invoking {} with "{}" to obtain root permissions:)",
+                           argv[0], argv[0], sudo);
   warn("{}", msg.c_str());
   cout << "=> ";
 
