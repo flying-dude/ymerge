@@ -122,8 +122,8 @@ target_link_libraries(ymerge libymerge)
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})
 
-#add_executable(auracle submodules/auracle/src/auracle_main.cc)
-#target_link_libraries(auracle absl::container_common absl::strings libauracle libalpm)
+add_executable(auracle submodules/auracle/src/auracle_main.cc)
+target_link_libraries(auracle absl::container_common absl::strings libauracle libalpm libpacman)
 
 file(GLOB_RECURSE libauracle_FILES src/libauracle/* submodules/auracle/src/auracle/* submodules/auracle/src/aur/*)
 add_library(libauracle STATIC ${libauracle_FILES})
@@ -137,11 +137,10 @@ target_link_libraries(libauracle
     absl::time
 )
 
-#add_executable(yman src/yman/main.cpp)
-#target_link_libraries(yman libymerge)
+add_executable(yman src/yman/main.cpp)
+target_link_libraries(yman libymerge)
 
-#install(TARGETS ymerge youtil auracle yman libymerge)
-install(TARGETS ymerge youtil libymerge)
+install(TARGETS ymerge youtil auracle yman libymerge)
 
 install(FILES extra/bash_completion
     RENAME auracle
