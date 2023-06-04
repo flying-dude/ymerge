@@ -38,21 +38,17 @@ include_directories(src/ymerge)
 include_directories(src/libymerge)
 include_directories(submodules/auracle/src)
 include_directories(submodules/pacman/src)
+include_directories(submodules/pacman/lib/libalpm)
 
-file(GLOB_RECURSE libymerge_FILES src/libymerge/* submodules/pacman/src/pacman/*)
+# create static lib containing pacman sources
+file(GLOB_RECURSE libpacman_FILES submodules/pacman/src/pacman/*)
 list(REMOVE_ITEM libpacman_FILES ${CMAKE_CURRENT_SOURCE_DIR}/submodules/pacman/src/pacman/pacman-conf.c)
-add_library(libymerge STATIC ${libymerge_FILES})
-target_link_libraries(libymerge libauracle youtil)
-
-# add pacman dependencies
-find_package(LibArchive REQUIRED)
-target_link_libraries(libymerge
-    PkgConfig::libalpm
-    LibArchive::LibArchive # https://cmake.org/cmake/help/latest/module/FindLibArchive.html
-)
+message(WARNING ${libpacman_FILES})
+add_library(libpacman STATIC ${libpacman_FILES})
+target_link_libraries(libpacman)
 
 # pacman compile definitions
-target_compile_definitions(libymerge PUBLIC
+target_compile_definitions(libpacman PUBLIC
     CONFFILE="/etc/pacman.conf"
     DBPATH="/var/lib/pacman/"
     LOGFILE="/var/log/pacman.log"
@@ -62,6 +58,18 @@ target_compile_definitions(libymerge PUBLIC
     ROOTDIR="/"
     PACKAGE_VERSION="${YMERGE_VERSION}"
     HAVE_STRNLEN="TRUE")
+
+file(GLOB_RECURSE libymerge_FILES src/libymerge/* submodules/pacman/src/pacman/*)
+list(REMOVE_ITEM libymerge_FILES ${CMAKE_CURRENT_SOURCE_DIR}/submodules/pacman/src/pacman/pacman-conf.c)
+add_library(libymerge STATIC ${libymerge_FILES})
+target_link_libraries(libymerge libpacman libauracle youtil)
+
+# add pacman dependencies
+find_package(LibArchive REQUIRED)
+target_link_libraries(libymerge
+    PkgConfig::libalpm
+    LibArchive::LibArchive # https://cmake.org/cmake/help/latest/module/FindLibArchive.html
+)
 
 file(GLOB_RECURSE ymerge_FILES src/ymerge/*)
 add_executable(ymerge ${ymerge_FILES})
@@ -75,7 +83,6 @@ target_link_libraries(auracle absl::container_common absl::strings libauracle)
 
 file(GLOB_RECURSE libauracle_FILES src/libauracle/* submodules/auracle/src/auracle/* submodules/auracle/src/aur/*)
 add_library(libauracle SHARED ${libauracle_FILES})
-#set_target_properties(libauracle PROPERTIES PREFIX "") # this does what?!
 target_link_libraries(libauracle
     CURL::libcurl
     fmt::fmt
