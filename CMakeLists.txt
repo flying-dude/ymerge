@@ -53,7 +53,7 @@ target_link_libraries(libalpm
 # libalpm compile definitions
 target_compile_definitions(libalpm PUBLIC
     LIB_VERSION="${YMERGE_VERSION}"
-    SYSHOOKDIR="/usr/share/libalpm/hooks"
+    SYSHOOKDIR="/usr/share/libalpm/hooks/"
 
     # https://gitlab.archlinux.org/archlinux/packaging/packages/pacman/-/blob/main/PKGBUILD#L60
     SCRIPTLET_SHELL="/usr/bin/bash"
@@ -67,6 +67,9 @@ target_compile_definitions(libalpm PUBLIC
     HAVE_SYS_MOUNT_H=1
     HAVE_SYS_TYPES_H=1
 )
+
+#target_compile_definitions(libalpm PUBLIC ENABLE_NLS=1)
+target_compile_definitions(libalpm PUBLIC HAVE_LIBCURL=1)
 
 find_package(Gpgmepp REQUIRED)
 target_compile_definitions(libalpm PUBLIC HAVE_LIBGPGME=1)
