@@ -41,7 +41,7 @@ include_directories(submodules/pacman/src)
 include_directories(submodules/pacman/src/common)
 
 # suppress warnings in libalpm and libpacman
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration -Wdeprecated-declarations")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration -Wno-deprecated-declarations")
 
 # statically link libalpm
 file(GLOB_RECURSE libalpm_FILES submodules/pacman/lib/libalpm/*)
@@ -66,9 +66,14 @@ target_compile_definitions(libalpm PUBLIC
     HAVE_SYS_PARAM_H="TRUE"
     HAVE_SYS_MOUNT_H="TRUE"
     HAVE_SYS_TYPES_H="TRUE"
+)
 
-    HAVE_LIBSSL=1
-    )
+# https://stackoverflow.com/questions/35477940/linking-statically-openssl-crypto-library-in-cmake
+# https://aur.archlinux.org/packages/openssl-static
+#set(OPENSSL_USE_STATIC_LIBS TRUE)
+find_package(OpenSSL REQUIRED)
+target_compile_definitions(libalpm PUBLIC HAVE_LIBSSL=1)
+target_link_libraries(libalpm OpenSSL::Crypto)
 
 # create static lib containing pacman sources
 file(GLOB_RECURSE libpacman_FILES submodules/pacman/src/pacman/* submodules/pacman/src/common/*)
@@ -113,12 +118,6 @@ target_link_libraries(libymerge
 file(GLOB_RECURSE ymerge_FILES src/ymerge/*)
 add_executable(ymerge ${ymerge_FILES})
 target_link_libraries(ymerge libymerge)
-
-# https://stackoverflow.com/questions/35477940/linking-statically-openssl-crypto-library-in-cmake
-# https://aur.archlinux.org/packages/openssl-static
-#set(OPENSSL_USE_STATIC_LIBS TRUE)
-find_package(OpenSSL REQUIRED)
-target_link_libraries(ymerge OpenSSL::Crypto)
 
 file(GLOB_RECURSE youtil_FILES src/youtil/*)
 add_library(youtil SHARED ${youtil_FILES})
