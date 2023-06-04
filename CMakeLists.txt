@@ -60,13 +60,17 @@ target_compile_definitions(libalpm PUBLIC
     LDCONFIG="/usr/bin/ldconfig"
 
     # should check for presence of header like so: https://gitlab.archlinux.org/pacman/pacman/-/blob/master/meson.build#L130
-    HAVE_MNTENT_H="TRUE"
-    HAVE_SYS_STATVFS_H="TRUE" FSSTATSTYPE=struct\ statvfs
-    HAVE_SYS_PARAM_H="TRUE"
-    HAVE_SYS_PARAM_H="TRUE"
-    HAVE_SYS_MOUNT_H="TRUE"
-    HAVE_SYS_TYPES_H="TRUE"
+    HAVE_MNTENT_H=1
+    HAVE_SYS_STATVFS_H=1 FSSTATSTYPE=struct\ statvfs
+    HAVE_SYS_PARAM_H=1
+    HAVE_SYS_PARAM_H=1
+    HAVE_SYS_MOUNT_H=1
+    HAVE_SYS_TYPES_H=1
 )
+
+find_package(Gpgmepp REQUIRED)
+target_compile_definitions(libalpm PUBLIC HAVE_LIBGPGME=1)
+target_link_libraries(libalpm Gpgmepp)
 
 # https://stackoverflow.com/questions/35477940/linking-statically-openssl-crypto-library-in-cmake
 # https://aur.archlinux.org/packages/openssl-static
