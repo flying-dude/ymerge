@@ -144,10 +144,11 @@ target_link_libraries(libauracle
     absl::time
 )
 
-add_executable(yman src/yman/yman.cpp)
-target_link_libraries(yman libymerge libpacman)
+#add_executable(yman src/yman/yman.cpp)
+#target_link_libraries(yman libymerge)
 
-install(TARGETS ymerge youtil auracle yman libymerge libpacman libauracle)
+#install(TARGETS ymerge youtil auracle yman libymerge libpacman libauracle)
+install(TARGETS ymerge youtil auracle)
 
 install(FILES extra/bash_completion
     RENAME auracle
