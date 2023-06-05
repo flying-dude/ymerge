@@ -10,11 +10,14 @@
 #include <csignal>
 #include <iostream>
 
+volatile sig_atomic_t stopFlag = 0;
+
 /* an empty handler already does the trick.
  * if we simply handle SIGINT, then ymerge cleanup code
  * will run after CTRL+C is pressed by the user. */
 static void handler(int signum) {
   // std::cout << "SIGINT :: getpid() " << getpid() << " :: signum " << signum << std::endl;
+  stopFlag = signum;
 }
 
 extern int handle_exceptions(int argc, const char **argv);
@@ -32,7 +35,9 @@ int main(int argc, const char **argv) {
 
   // reset handler to default and exit by SIGINT
   // are the following lines correct?
-  sa.sa_handler = SIG_DFL;
-  sigaction(SIGINT, &sa, NULL);
-  raise(SIGINT);
+  if (stopFlag) {
+    sa.sa_handler = SIG_DFL;
+    sigaction(SIGINT, &sa, NULL);
+    raise(SIGINT);
+  }
 }
