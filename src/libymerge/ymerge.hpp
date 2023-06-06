@@ -12,6 +12,7 @@ extern const char **argv;
 /* reinvoke ymerge with identical command line but prefix with sudo.
  * the point of doing that is to obtain root permissions, if needed. */
 extern void as_sudo();
+extern const char* sudo_cmd();
 
 void main_throws(int argc, const char **argv);
 

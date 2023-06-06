@@ -89,7 +89,8 @@ srcinfo& pkgbuild::init_srcinfo() {
     cmd_options opt;
     opt.working_dir = build_dir;
     opt.stdout_file = file;
-    exec_opt(opt, "sudo", "--user=ymerge", "makepkg", "--printsrcinfo");
+    // note: syntax "--user=ymerge" not supported by opendoas. "-u ymerge" works for both sudo and doas.
+    exec_opt(opt, sudo_cmd(), "-u", "ymerge", "makepkg", "--printsrcinfo");
   }
 
   shared_ptr<string> sp = fly::file::read(file);
@@ -106,7 +107,8 @@ void pkgbuild::install() {
 
   cmd_options opt;
   opt.working_dir = get_build_dir();
-  exec_opt(opt, "sudo", "--user=ymerge", "makepkg", "--syncdeps", "--noconfirm");
+  // note: syntax "--user=ymerge" not supported by opendoas. "-u ymerge" works for both sudo and doas.
+  exec_opt(opt, sudo_cmd(), "-u", "ymerge", "makepkg", "--syncdeps", "--noconfirm");
 
   string archive_name =
       (info_->pkgname + "-" + info_->pkgver + "-" + std::to_string(info_->pkgrel) + "-x86_64.pkg.tar.zst");

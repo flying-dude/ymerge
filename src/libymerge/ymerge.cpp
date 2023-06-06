@@ -324,17 +324,19 @@ void add_recipe_to_list(vector<shared_ptr<pkgbuild>> &recipes, shared_ptr<pkgbui
   recipes.push_back(recipe);
 }
 
+const char *sudo_cmd() {
+  // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
+  if (system("which sudo > /dev/null 2>&1") == 0) return "sudo";
+  if (system("which doas > /dev/null 2>&1") == 0) return "doas";
+  if (geteuid() == 0) throw std::runtime_error("please execute ymerge as root.");
+  throw std::runtime_error(R"(neither "sudo" nor "doas" found on your system. cannot switch user.)");
+}
+
 void as_sudo() {
   // if effective uid is 0, we are root
   if (geteuid() == 0) return;
 
-  const char *sudo = nullptr;
-
-  // https://stackoverflow.com/questions/890894/portable-way-to-find-out-if-a-command-exists-c-c
-  if (system("which sudo > /dev/null 2>&1") == 0) sudo = "sudo";
-  if (system("which doas > /dev/null 2>&1") == 0) sudo = "doas";
-
-  if (sudo == nullptr) { throw std::runtime_error("please execute ymerge as root."); }
+  const char *sudo = sudo_cmd();
 
   string msg = fmt::format(R"({} was executed without superuser privileges.
 re-invoking {} with "{}" to obtain root permissions:)",
